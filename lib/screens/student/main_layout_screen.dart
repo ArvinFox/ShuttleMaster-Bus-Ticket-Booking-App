@@ -13,7 +13,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
 
   final List<Widget> _screens = [
     HomeScreen(),
-    // Add the other navigation screens here
+    // Add the other navigation screens here (Rides, Notifications, Account)
   ];
 
   void _onItemTapped(int index) {
