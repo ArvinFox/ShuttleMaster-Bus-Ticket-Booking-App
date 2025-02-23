@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shuttlemaster/screens/student/home_screen.dart';
+import 'package:shuttlemaster/screens/student/rides_screen.dart';
 
 class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key});
@@ -13,6 +14,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
 
   final List<Widget> _screens = [
     HomeScreen(),
+    RidesScreen(),
     // Add the other navigation screens here (Rides, Notifications, Account)
   ];
 

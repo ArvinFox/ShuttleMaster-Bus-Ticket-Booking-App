@@ -82,7 +82,6 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 20),
-
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -198,16 +197,20 @@ class HomeScreen extends StatelessWidget {
             _buildQuickAccessButton(context, "View History", Icons.history, ""),
             _buildQuickAccessButton(context, "Book Now", Icons.book_online, ""),
             _buildQuickAccessButton(context, "Pay Later", Icons.payment, ""),
-            _buildQuickAccessButton(context, "Cancel a Booking", Icons.cancel, ""),
-            _buildQuickAccessButton(context, "Top up Account", Icons.account_balance_wallet, ""),
-            _buildQuickAccessButton(context, "Customer Support", Icons.support_agent, ""),
+            _buildQuickAccessButton(
+                context, "Cancel a Booking", Icons.cancel, ""),
+            _buildQuickAccessButton(
+                context, "Top up Account", Icons.account_balance_wallet, ""),
+            _buildQuickAccessButton(
+                context, "Customer Support", Icons.support_agent, ""),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildQuickAccessButton(BuildContext context, String label, IconData icon, String route) {
+  Widget _buildQuickAccessButton(
+      BuildContext context, String label, IconData icon, String route) {
     return Card(
       color: Colors.grey[100],
       child: InkWell(
