@@ -54,7 +54,7 @@ class HomeScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Good Morning!",
+                        _getGreetingMessage(),
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 24,
@@ -82,6 +82,7 @@ class HomeScreen extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 20),
+
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -114,6 +115,17 @@ class HomeScreen extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  String _getGreetingMessage() {
+    final hour = DateTime.now().hour;
+    if (hour >= 0 && hour < 12) {
+      return "Good Morning!";
+    } else if (hour >= 12 && hour < 16) {
+      return "Good Afternoon!";
+    } else {
+      return "Good Evening!";
+    }
   }
 
   Widget _buildMyRides() {
@@ -197,20 +209,16 @@ class HomeScreen extends StatelessWidget {
             _buildQuickAccessButton(context, "View History", Icons.history, ""),
             _buildQuickAccessButton(context, "Book Now", Icons.book_online, ""),
             _buildQuickAccessButton(context, "Pay Later", Icons.payment, ""),
-            _buildQuickAccessButton(
-                context, "Cancel a Booking", Icons.cancel, ""),
-            _buildQuickAccessButton(
-                context, "Top up Account", Icons.account_balance_wallet, ""),
-            _buildQuickAccessButton(
-                context, "Customer Support", Icons.support_agent, ""),
+            _buildQuickAccessButton(context, "Cancel a Booking", Icons.cancel, ""),
+            _buildQuickAccessButton(context, "Top up Account", Icons.account_balance_wallet, ""),
+            _buildQuickAccessButton(context, "Customer Support", Icons.support_agent, ""),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildQuickAccessButton(
-      BuildContext context, String label, IconData icon, String route) {
+  Widget _buildQuickAccessButton(BuildContext context, String label, IconData icon, String route) {
     return Card(
       color: Colors.grey[100],
       child: InkWell(

@@ -9,47 +9,51 @@ class WelcomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(30),
-                  bottomRight: Radius.circular(30),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Image.asset("assets/images/welcome.png", height: 300),
-                  SizedBox(height: 20),
-
-                  CustomGreeting(),
-                  SizedBox(height: 10),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20),
-                    child: Text(
-                      "Effortlessly navigate campus with ease, track shuttles, and join a community committed to sustainable travel.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.only(
+                      bottomLeft: Radius.circular(30),
+                      bottomRight: Radius.circular(30),
                     ),
                   ),
-                  SizedBox(height: 40),
-                ],
-              ),
+                  child: Column(
+                    children: [
+                      Image.asset("assets/images/welcome.png", height: 300),
+                      SizedBox(height: 20),
+                    
+                      CustomGreeting(),
+                      SizedBox(height: 10),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20),
+                        child: Text(
+                          "Effortlessly navigate campus with ease, track shuttles, and join a community committed to sustainable travel.",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 40),
+                    ],
+                  ),
+                ),
+                    
+                CustomButton(
+                  label: "GET STARTED >>",
+                  onPressed: () {
+                    Navigator.pushNamed(context, "/select-role");
+                  },
+                ),
+              ],
             ),
-
-            CustomButton(
-              label: "GET STARTED >>",
-              onPressed: () {
-                Navigator.pushNamed(context, "/select-role");
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );

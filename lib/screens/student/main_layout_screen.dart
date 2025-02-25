@@ -15,7 +15,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   final List<Widget> _screens = [
     HomeScreen(),
     RidesScreen(),
-    // Add the other navigation screens here (Rides, Notifications, Account)
+    // Add the other navigation screens here (Notifications, Account)
   ];
 
   void _onItemTapped(int index) {
@@ -26,25 +26,40 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: Theme(
-        data: Theme.of(context).copyWith(
-          canvasColor: Colors.white,
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          selectedItemColor: Colors.blueAccent,
-          unselectedItemColor: Colors.grey,
-          showSelectedLabels: true,
-          type: BottomNavigationBarType.fixed,
-          items: [
-            BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
-            BottomNavigationBarItem(icon: Icon(Icons.directions_bus), label: "Rides"),
-            BottomNavigationBarItem(icon: Icon(Icons.notifications), label: "Notifications"),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
-          ],
+    return PopScope(
+      canPop: _selectedIndex == 0,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          if (_selectedIndex != 0) {
+            setState(() {
+              _selectedIndex = 0;
+            });
+          }
+        }
+      },
+      child: Scaffold(
+        body: _screens[_selectedIndex],
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            border: Border(
+              top: BorderSide(color: Colors.grey.shade200, width: 1),
+            ),
+          ),
+          child: BottomNavigationBar(
+            backgroundColor: Colors.white,
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
+            selectedItemColor: Colors.blueAccent,
+            unselectedItemColor: Colors.grey,
+            showSelectedLabels: true,
+            type: BottomNavigationBarType.fixed,
+            items: [
+              BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+              BottomNavigationBarItem(icon: Icon(Icons.directions_bus), label: "Rides"),
+              BottomNavigationBarItem(icon: Icon(Icons.notifications), label: "Notifications"),
+              BottomNavigationBarItem(icon: Icon(Icons.person), label: "Account"),
+            ],
+          ),
         ),
       ),
     );
