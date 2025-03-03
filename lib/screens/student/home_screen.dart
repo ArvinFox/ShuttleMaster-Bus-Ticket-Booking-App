@@ -208,8 +208,8 @@ class HomeScreen extends StatelessWidget {
           children: [
             _buildQuickAccessButton(context, "View History", Icons.history, ""),
             _buildQuickAccessButton(context, "Book Now", Icons.book_online, ""),
-            _buildQuickAccessButton(context, "Pay Later", Icons.payment, ""),
-            _buildQuickAccessButton(context, "Cancel a Booking", Icons.cancel, ""),
+            _buildQuickAccessButton(context, "Pay Later", Icons.payment, "/pay-later"),
+            _buildQuickAccessButton(context, "Cancel a Booking", Icons.cancel, "/cancel-booking"),
             _buildQuickAccessButton(context, "Top up Account", Icons.account_balance_wallet, ""),
             _buildQuickAccessButton(context, "Customer Support", Icons.support_agent, ""),
           ],

@@ -82,8 +82,9 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
 
             // List Items
             _buildListItem(Icons.person, 'View Profile', () {}),
-            _buildListItem(Icons.history, 'Traveling History', () {}),
-            _buildListItem(Icons.history, 'Top up Account', () {}),
+            _buildListItem(Icons.history, 'Trip History', () {
+              Navigator.pushNamed(context, '/trip-history');
+            }),
             _buildListItem(Icons.headset_mic, 'Help & Support', () {}),
             _buildListItem(Icons.info_outline, 'About Us', () {}),
 
@@ -103,23 +104,6 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
             ),
           ],
         ),
-      ),
-
-      // Bottom Navigation Bar
-      bottomNavigationBar: BottomNavigationBar(
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.info_outline), label: 'Trip Info'),
-          BottomNavigationBarItem(
-              icon: Icon(Icons.notifications), label: 'Notifications'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Account'),
-        ],
-        currentIndex: 3, // Account selected
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey,
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
       ),
     );
   }
