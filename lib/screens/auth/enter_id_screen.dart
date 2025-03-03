@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shuttlemaster/components/custom_auth_appbar.dart';
 import 'package:shuttlemaster/components/custom_button.dart';
 import 'package:shuttlemaster/components/custom_greeting.dart';
+import 'package:shuttlemaster/constants/app_config.dart';
+import 'package:shuttlemaster/models/user_model.dart';
+import 'package:shuttlemaster/services/user_service.dart';
 import 'package:shuttlemaster/utils/helpers.dart';
 
 class EnterIdScreen extends StatefulWidget {
@@ -13,6 +16,9 @@ class EnterIdScreen extends StatefulWidget {
 
 class _EnterIdScreenState extends State<EnterIdScreen> {
   final _idController = TextEditingController();
+  final _userService = UserService();
+  
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -24,7 +30,7 @@ class _EnterIdScreenState extends State<EnterIdScreen> {
   Widget build(BuildContext context) {
     // Retrieve user role
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    final String role = args?['role'] ?? "passenger";
+    final String role = args?['role'] ?? AppConfig.passengerRole;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -45,11 +51,11 @@ class _EnterIdScreenState extends State<EnterIdScreen> {
                   CustomGreeting(),
                   SizedBox(height: 20),
                     
-                  Image.asset("assets/images/role-select.png", height: 200),
+                  Image.asset("assets/images/common-image.png", height: 200),
                   SizedBox(height: 30),
                     
                   Text(
-                    role == "passenger"
+                    role == AppConfig.passengerRole
                       ? "Please enter your Student ID or Lecturer ID here."
                       : "Please enter your National Identity Card Number here.",
                     textAlign: TextAlign.center,
@@ -60,7 +66,7 @@ class _EnterIdScreenState extends State<EnterIdScreen> {
                   TextField(
                     controller: _idController,
                     decoration: InputDecoration(
-                      labelText: role == "passenger"
+                      labelText: role == AppConfig.passengerRole
                         ? "Student ID/Lecturer ID"
                         : "National Identity Card (NIC)",
                       border: OutlineInputBorder(),
@@ -70,14 +76,38 @@ class _EnterIdScreenState extends State<EnterIdScreen> {
                     
                   CustomButton(
                     label: "Continue",
-                    onPressed: () {
+                    isLoading: _isLoading,
+                    onPressed: () async {
                       String id = _idController.text;
                     
                       if (id.isNotEmpty) {
-                        // TODO: Verify ID
+                        setState(() {
+                          _isLoading = true;
+                        });
+
+                        UserModel? user = await _userService.getUserById(id, role);
+
+                        if (user == null) {
+                          String message = role == AppConfig.passengerRole
+                            ? "Passenger not found. Please check your NSBM ID."
+                            : "Driver not found. Please check your NIC.";
+                          
+                          await Future.delayed(Duration(milliseconds: 750));
+                          setState(() {
+                            _isLoading = false;
+                          });
+
+                          Helpers.showMessage(context, message);
+                          return;
+                        }
                     
                         String route = "/select-otp-method";
-                        if (role != "passenger") route = "/enter-otp";
+                        if (role != AppConfig.passengerRole) route = "/enter-otp";
+
+                        await Future.delayed(Duration(seconds: 1));
+                        setState(() {
+                          _isLoading = false;
+                        });
                         
                         Navigator.pushNamed(
                           context, 
@@ -86,7 +116,7 @@ class _EnterIdScreenState extends State<EnterIdScreen> {
                         );
                       } else {
                         Helpers.showMessage(context, 
-                          role == "passenger" 
+                          role == AppConfig.passengerRole 
                             ? "ID is required" 
                             : "NIC is required",
                         );

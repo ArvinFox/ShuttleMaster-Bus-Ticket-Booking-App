@@ -1,8 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shuttlemaster/components/custom_auth_appbar.dart';
+import 'package:shuttlemaster/components/custom_button.dart';
 import 'package:shuttlemaster/components/custom_greeting.dart';
+import 'package:shuttlemaster/constants/app_config.dart';
+import 'package:shuttlemaster/models/user_model.dart';
 import 'package:shuttlemaster/services/otp_service.dart';
+import 'package:shuttlemaster/services/user_service.dart';
+import 'package:shuttlemaster/utils/formatters.dart';
 import 'package:shuttlemaster/utils/helpers.dart';
 
 class EnterOtpScreen extends StatefulWidget {
@@ -13,15 +18,50 @@ class EnterOtpScreen extends StatefulWidget {
 }
 
 class _EnterOtpScreenState extends State<EnterOtpScreen> {
-  final OtpService _otpService = OtpService();
   final _otpController = TextEditingController();
+  final _otpService = OtpService();
+  final _userService = UserService();
 
+  bool _isFetching = true;
   bool _isLoading = false;
   bool _isOtpSent = false;
+  String? _contactInfo;
   int _remainingTime = 30;
   Timer? _timer;
   String? _generatedOtp;
   DateTime? _otpExpiryTime;
+
+  Future<void> _fetchUserInfo(String otpMethod, String id, String role) async {
+    try {
+      String contactInfo = await _getUserContactInfo(otpMethod, id, role);
+
+      setState(() {
+        _contactInfo = contactInfo;
+        _isFetching = false;
+      });
+
+    } catch (e) {
+      Helpers.showMessage(context, "Failed to load user information. Please try again.");
+      setState(() {
+        _isFetching = false;
+      });
+    }
+  }
+
+  Future<String> _getUserContactInfo(String contactType, String id, String role) async {
+    UserModel? user = await _userService.getUserById(id, role);
+
+    if (user == null) throw Exception("User not found");
+
+    switch (contactType) {
+      case AppConfig.otpPhone:
+        return user.phone;
+      case AppConfig.otpEmail:
+        return ((user) as PassengerModel).email;
+      default:
+        throw Exception("Invalid contact type: $contactType");
+    }
+  }
 
   @override
   void initState() {
@@ -38,19 +78,16 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
     }
 
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    // final String id = args?['id'] ?? "unknown";
-    final String otpMethod = args?['otp-method'] ?? "mobile";
+    final String id = args?['id'] ?? AppConfig.invalidId;
+    final String role = args?['role'] ?? AppConfig.passengerRole;
+    final String otpMethod = args?['otp-method'] ?? AppConfig.otpPhone;
+
+    await _fetchUserInfo(otpMethod, id, role);
 
     String otp = Helpers.generateOtp();
-    bool isSuccess = false;
-      
-    if (otpMethod == "email") {
-      // TODO: String email = "";   // Get email via ID
-      isSuccess = await _otpService.sendEmailOtp("uminduvh@gmail.com", otp);
-    } else {
-      // TODO: String phoneNumber = "";   // Get phone number via ID
-      isSuccess = await _otpService.sendSMSOtp("+94741153063", otp);
-    }
+    bool isSuccess = otpMethod == AppConfig.otpEmail
+      ? await _otpService.sendEmailOtp(_contactInfo!, otp)
+      : await _otpService.sendSMSOtp(_contactInfo!, otp);
 
     if (isSuccess) {
       setState(() {
@@ -126,8 +163,8 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
 
     if (isCorrectOtp) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      final String role = args?['role'] ?? "passenger";
-      final String id = args?['id'] ?? "unknown";
+      final String role = args?['role'] ?? AppConfig.passengerRole;
+      final String id = args?['id'] ?? AppConfig.invalidId;
 
       Navigator.pushNamedAndRemoveUntil(
         context,
@@ -140,7 +177,7 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
 
   Future<String> getUserHomeRoute(String? role) async {
     await Future.delayed(Duration(milliseconds: 250));
-    return (role == "passenger") ? "/student/home" : "/driver/home";
+    return (role == AppConfig.passengerRole) ? "/student/home" : "/driver-profile";
   }
 
   @override
@@ -154,7 +191,7 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
   Widget build(BuildContext context) {
     // Retrieve user role, id, and otp method
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    final String otpMethod = args?['otp-method'] ?? "mobile";
+    final String otpMethod = args?['otp-method'] ?? AppConfig.otpPhone;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -174,15 +211,28 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
                 CustomGreeting(),
                 SizedBox(height: 20),
         
-                Image.asset("assets/images/role-select.png", height: 200),
+                Image.asset("assets/images/common-image.png", height: 200),
                 SizedBox(height: 30),
-        
-                Text("Enter OTP here",style: TextStyle(fontSize: 15)),
-                SizedBox(height: 20),
-        
-                _buildOtpInputField(otpMethod),
-                SizedBox(height: 25),
-                _buildSubmitButton(),
+
+                if (_isFetching)
+                  CircularProgressIndicator()
+                else ...[
+                  Text(
+                    "We've sent an OTP to your $otpMethod (${otpMethod == AppConfig.otpEmail ? Formatters.getMaskedEmail(_contactInfo!) : Formatters.getMaskedPhoneNumber(_contactInfo!)}). \nEnter it below to continue.",
+                    style: TextStyle(fontSize: 15),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 20),
+          
+                  _buildOtpInputField(otpMethod),
+                  SizedBox(height: 25),
+
+                  CustomButton(
+                    label: "Continue", 
+                    onPressed: _isLoading ? null : _handleOtpVerification,
+                    isLoading: _isLoading,
+                  ),
+                ],
               ],
             ),
           ),
@@ -218,30 +268,6 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  ElevatedButton _buildSubmitButton() {
-    return ElevatedButton(
-      onPressed: _isLoading
-        ? null
-        : _handleOtpVerification,
-      style: ElevatedButton.styleFrom(
-        padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-        textStyle: TextStyle(fontSize: 16),
-        backgroundColor: Color.fromARGB(255, 219, 232, 255),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      child: _isLoading
-        ? CircularProgressIndicator()
-        : Text(
-            "Continue",
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.blueAccent,
-            ), 
-          ),
     );
   }
 }

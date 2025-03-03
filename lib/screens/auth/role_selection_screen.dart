@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shuttlemaster/components/custom_greeting.dart';
+import 'package:shuttlemaster/constants/app_config.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
   const RoleSelectionScreen({super.key});
@@ -20,7 +21,7 @@ class RoleSelectionScreen extends StatelessWidget {
                   CustomGreeting(),
                   SizedBox(height: 20),
                     
-                  Image.asset("assets/images/role-select.png", height: 200),
+                  Image.asset("assets/images/common-image.png", height: 200),
                   SizedBox(height: 30),
                     
                   ElevatedButton(
@@ -34,7 +35,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       Navigator.pushNamed(
                         context, 
                         "/enter-id",
-                        arguments: {"role": "passenger"},
+                        arguments: {"role": AppConfig.passengerRole},
                       );
                     },
                     child: Text(
@@ -60,7 +61,7 @@ class RoleSelectionScreen extends StatelessWidget {
                       Navigator.pushNamed(
                         context, 
                         "/enter-id",
-                        arguments: {"role": "bus-driver"},
+                        arguments: {"role": AppConfig.driverRole},
                       );
                     },
                     child: Text(

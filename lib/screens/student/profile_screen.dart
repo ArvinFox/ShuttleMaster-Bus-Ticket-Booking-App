@@ -81,13 +81,11 @@ class ProfileScreenState extends State<ProfileScreenStuent> {
             const SizedBox(height: 10),
 
             // List Items
-            _buildListItem(Icons.person, 'View Profile', () {}),
-            _buildListItem(Icons.history, 'Traveling History', () {
-              Navigator.pushNamed(context, '/traveling-history');
-            }),
-            _buildListItem(Icons.account_balance_wallet, 'Top up Account', () {}),
-            _buildListItem(Icons.headset_mic, 'Help & Support', () {}),
-            _buildListItem(Icons.info_outline, 'About Us', () {}),
+            _buildListItem(Icons.person, 'View Profile', ""),
+            _buildListItem(Icons.history, 'Travelling History', "/traveling-history"),
+            _buildListItem(Icons.account_balance_wallet, 'Top up Account', ""),
+            _buildListItem(Icons.support_agent, 'Help & Support', ""),
+            _buildListItem(Icons.info_outline, 'About Us', "/about-us"),
 
             // Footer
             const SizedBox(height: 20),
@@ -109,11 +107,13 @@ class ProfileScreenState extends State<ProfileScreenStuent> {
     );
   }
 
-  Widget _buildListItem(IconData icon, String title, VoidCallback onTap) {
+  Widget _buildListItem(IconData icon, String title, String route) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
       child: InkWell(
-        onTap: onTap,
+        onTap: () {
+          Navigator.pushNamed(context, route);
+        },
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
