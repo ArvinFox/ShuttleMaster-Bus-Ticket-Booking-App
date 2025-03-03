@@ -65,6 +65,8 @@ analysis_benchmark.json
 .pub-preload-cache/
 .pub-cache/
 .pub/
+android/app/google-services.json
+lib/constants/app_credentials.dart
 /build/
 flutter_*.png
 linked_*.ds
