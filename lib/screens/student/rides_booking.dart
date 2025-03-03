@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:shuttlemaster/components/rides_info_card.dart';
 
 class RidesBooking extends StatelessWidget {
   const RidesBooking({super.key});
@@ -52,42 +53,17 @@ class BookingScreenState extends State<BookingScreen> {
             Text("Booking",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
             SizedBox(height: 20),
-            Card(
-              color: Colors.grey[200],
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.directions_bus, color: Colors.red),
-                        SizedBox(width: 8),
-                        Text("Bus No",
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red)),
-                        Spacer(),
-                        Text("NA 0090",
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red)),
-                      ],
-                    ),
-                    Divider(),
-                    infoRow("Start Point", "Kadawatha"),
-                    infoRow("End Point", "NSBM"),
-                    infoRow("Time", "8:00 AM"),
-                    infoRow("Price", "Rs. 300.00"),
-                    infoRow("Seat Availability", "Yes"),
-                  ],
+            Column(
+              children: [ 
+                RideInfoCard(
+                  busNo: "NA 0090",
+                  startPoint: "Kadawatha",
+                  endPoint: "NSBM",
+                  time: "8:00 AM",
+                  price: "Rs. 300.00",
+                  seatAvailability: "Yes",
                 ),
-              ),
+              ],
             ),
             SizedBox(height: 25),
             Text("Select Trip Type",
@@ -150,19 +126,6 @@ class BookingScreenState extends State<BookingScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget infoRow(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        children: [
-          Text("$title - ",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          Text(value, style: TextStyle(fontSize: 16)),
-        ],
       ),
     );
   }

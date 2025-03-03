@@ -18,7 +18,7 @@ class OtpService {
       ..from = Address(_email, "ShuttleMaster OTP Service")
       ..recipients.add(email)
       ..subject = "ShuttleMaster OTP Verification"
-      ..text = "Your ShuttleMaster verification code is: $otp."
+      ..text = "Your ShuttleMaster verification code is: $otp. "
                 "It will expire in 5 minutes. Do not share this code with anyone.";
     
     try {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:shuttlemaster/components/rides_info_card.dart';
 
 class RidesBookingMonthly extends StatelessWidget {
   const RidesBookingMonthly({super.key});
@@ -7,19 +8,19 @@ class RidesBookingMonthly extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: RidesScreen(),
+      home: RidesScreenMonthly(),
     );
   }
 }
 
-class RidesScreen extends StatefulWidget {
-  const RidesScreen({super.key});
+class RidesScreenMonthly extends StatefulWidget {
+  const RidesScreenMonthly({super.key});
 
   @override
   RidesScreenState createState() => RidesScreenState();
 }
 
-class RidesScreenState extends State<RidesScreen> {
+class RidesScreenState extends State<RidesScreenMonthly> {
   String? selectedPayment;
 
   @override
@@ -46,60 +47,41 @@ class RidesScreenState extends State<RidesScreen> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
-            Card(
-              color: Colors.grey[200],
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.directions_bus, color: Colors.red),
-                        SizedBox(width: 8),
-                        Text("Bus No",
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red)),
-                        Spacer(),
-                        Text("NA 0090",
-                            style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.red)),
-                      ],
-                    ),
-                    Divider(),
-                    infoRows("Start Point", "Kadawatha"),
-                    infoRows("End Point", "NSBM"),
-                    infoRows("Time", "8:00 AM"),
-                    infoRows("Price", "Rs. 300.00"),
-                    infoRows("Seat Availability", "Yes"),
-                  ],
-                ),
-              ),
+            
+            // Ride Info Card
+            RideInfoCard(
+              busNo: "NA 0090",
+              startPoint: "Kadawatha",
+              endPoint: "NSBM",
+              time: "8:00 AM",
+              price: "Rs. 300.00",
+              seatAvailability: "Yes",
             ),
+
             SizedBox(height: 25),
             Text(
               "Payment Method (Recurring)",
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
+
+            // Payment Options
             _buildPaymentOption("Cash"),
             _buildPaymentOption("Card"),
             _buildPaymentOption("Current Balance"),
+
             SizedBox(height: 40),
+
+            // OK Button
             Center(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blueAccent,
                   padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  print("Selected Payment: $selectedPayment");
+                },
                 child: Text("OK",
                     style: TextStyle(fontSize: 18, color: Colors.white)),
               ),
@@ -128,19 +110,6 @@ class RidesScreenState extends State<RidesScreen> {
         ),
         Text(option, style: TextStyle(fontSize: 14)),
       ],
-    );
-  }
-
-  Widget infoRows(String title, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        children: [
-          Text("$title - ",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-          Text(value, style: TextStyle(fontSize: 16)),
-        ],
-      ),
     );
   }
 }
