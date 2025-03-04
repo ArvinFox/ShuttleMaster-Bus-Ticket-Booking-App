@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shuttlemaster/components/custom_main_appbar.dart';
 import 'package:shuttlemaster/components/rides_info_card.dart';
 
 class RidesScreenSelection extends StatefulWidget {
@@ -59,11 +60,12 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
   Widget build(BuildContext context) {
   return Scaffold(
     backgroundColor: Colors.white,
-    appBar: AppBar(
-      title: Text('Rides'),
-      backgroundColor: Colors.blueAccent,
-      foregroundColor: Colors.white,
-    ),
+    // appBar: AppBar(
+    //   title: Text('Rides'),
+    //   backgroundColor: Colors.blueAccent,
+    //   foregroundColor: Colors.white,
+    // ),
+    appBar: CustomMainAppbar(title: 'Rides'),
     body: SafeArea(
       child: widget.busType == "Private Bus" 
         ? _buildRideSearch() 

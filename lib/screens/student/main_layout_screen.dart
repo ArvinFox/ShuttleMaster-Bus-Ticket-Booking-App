@@ -16,7 +16,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
   final List<Widget> _screens = [
     HomeScreen(),
     RidesScreen(),
-    ProfileScreenStuent(),
+    ProfileScreenStuent(),// Add Notification Page here
     ProfileScreenStuent(),
     // Add the other navigation screens here (Notifications, Account)
   ];

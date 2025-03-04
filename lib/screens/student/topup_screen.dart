@@ -1,5 +1,6 @@
-import 'package:flutter/cupertino.dart';
+// import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shuttlemaster/components/custom_main_appbar.dart';
 
 class TopUpScreen extends StatelessWidget {
   const TopUpScreen({super.key});
@@ -7,19 +8,21 @@ class TopUpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        leading: CupertinoNavigationBarBackButton(
-          color: Colors.white,
-          onPressed: () => Navigator.pop(context),
-        ),
-        leadingWidth: 40,
-        title: Text(
-          'Top-up Account',
-          style: TextStyle(
-              color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-      ),
+      backgroundColor: Colors.white,
+      // appBar: AppBar(
+      //   backgroundColor: Colors.blueAccent,
+      //   leading: CupertinoNavigationBarBackButton(
+      //     color: Colors.white,
+      //     onPressed: () => Navigator.pop(context),
+      //   ),
+      //   leadingWidth: 40,
+      //   title: Text(
+      //     'Top-up Account',
+      //     style: TextStyle(
+      //         color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+      //   ),
+      // ),
+      appBar: CustomMainAppbar(title: 'Top-up Account'),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),
@@ -28,7 +31,7 @@ class TopUpScreen extends StatelessWidget {
             children: [
               SizedBox(height: 10),
               Container(
-                padding: EdgeInsets.all(16),
+                padding: EdgeInsets.all(12),
                 height: 100,
                 decoration: BoxDecoration(
                   color: Colors.grey[300],

@@ -1,15 +1,10 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shuttlemaster/components/custom_main_appbar.dart';
 
 class TravelingHistory extends StatefulWidget {
   final int initialIndex;
-  final String page;
 
-  const TravelingHistory({
-    super.key,
-    required this.initialIndex,
-    required this.page,
-  });
+  const TravelingHistory({super.key, required this.initialIndex});
 
   @override
   State<TravelingHistory> createState() => _TravelingHistoryState();
@@ -34,29 +29,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
-        title: Text(
-          "Traveling History",
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        leading: CupertinoNavigationBarBackButton(
-          color: Colors.white,
-          onPressed: () {
-            if (widget.page == 'profile') {
-              Navigator.popAndPushNamed(context, 'user-profile');
-            } else if (widget.page == 'home') {
-              Navigator.popAndPushNamed(context, '/student/home');
-            } else if (widget.page == 'pay-later') {
-              Navigator.popAndPushNamed(context, '/student/home');
-            }
-          },
-        ),
-        leadingWidth: 40,
-      ),
+      appBar: CustomMainAppbar(title: 'Traveling History'),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
@@ -481,7 +454,9 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                   child: Padding(
                     padding: EdgeInsets.all(5),
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.popAndPushNamed(context, '/total-payable');
+                      },
                       style: ButtonStyle(
                         backgroundColor:
                             MaterialStateProperty.all<Color>(Colors.blueAccent),

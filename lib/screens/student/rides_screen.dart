@@ -14,6 +14,7 @@ class RidesScreen extends StatelessWidget {
         ),
         backgroundColor: Colors.blueAccent,
         foregroundColor: Colors.white,
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: Center(

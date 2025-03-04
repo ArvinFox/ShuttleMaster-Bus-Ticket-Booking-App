@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shuttlemaster/components/custom_main_appbar.dart';
 import 'package:shuttlemaster/components/rides_info_card.dart';
 
 class RidesScreenMonthly extends StatefulWidget {
@@ -15,14 +16,15 @@ class RidesScreenState extends State<RidesScreenMonthly> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          'Rides',
-          style: TextStyle(fontWeight: FontWeight.w500),
-        ),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
-      ),
+      // appBar: AppBar(
+      //   title: Text(
+      //     'Rides',
+      //     style: TextStyle(fontWeight: FontWeight.w500),
+      //   ),
+      //   backgroundColor: Colors.blueAccent,
+      //   foregroundColor: Colors.white,
+      // ),
+      appBar: CustomMainAppbar(title: 'Rides'),
       body: Padding(
         padding: EdgeInsets.all(16.0),
         child: Column(

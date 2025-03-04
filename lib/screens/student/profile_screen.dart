@@ -84,7 +84,7 @@ class ProfileScreenState extends State<ProfileScreenStuent> {
             // List Items
             _buildListItem(Icons.person, 'View Profile', ""),
             _buildListItem(Icons.history, 'Travelling History', "/traveling-history"),
-            _buildListItem(Icons.account_balance_wallet, 'Top up Account', ""),
+            _buildListItem(Icons.account_balance_wallet, 'Top up Account', "/top-up-account"),
             _buildListItem(Icons.support_agent, 'Help & Support', ""),
             _buildListItem(Icons.info_outline, 'About Us', "/about-us"),
 

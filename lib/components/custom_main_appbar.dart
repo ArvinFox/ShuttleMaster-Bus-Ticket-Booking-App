@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class CustomMainAppbar extends StatelessWidget implements PreferredSizeWidget {
@@ -17,6 +18,10 @@ class CustomMainAppbar extends StatelessWidget implements PreferredSizeWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
+      leading: CupertinoNavigationBarBackButton(
+        color: Colors.white,
+      ),
+      leadingWidth: 40,
     );
   }
   
