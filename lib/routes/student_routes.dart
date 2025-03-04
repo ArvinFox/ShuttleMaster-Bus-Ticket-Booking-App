@@ -13,9 +13,11 @@ class StudentRoutes {
     '/user-profile':(context) => ProfileScreenStuent(),
     '/cancel-booking':(context) => TravelingHistory(initialIndex: 0, page: 'home',),
     '/pay-later':(context) => TravelingHistory(initialIndex: 3, page: 'pay-later',),
-    '/privateBusScreen' : (context) => RidesScreenSelection(),
-    '/book-now' : (context) => RidesBooking(),
-    '/monthly-book' : (context) => RidesBookingMonthly(),
+    '/privateBusScreen' : (context) => RidesScreenSelection(busType: 'Private Bus',),
+    '/NSBM-Bus' : (context) => RidesScreenSelection(busType: 'NSBM Bus',),
+    '/public-transport' : (context) => RidesScreenSelection(busType: 'Public Transport',),
+    '/book-now' : (context) => BookingScreen(),
+    '/monthly-book' : (context) => RidesScreenMonthly(),
     // Add the rest of the student's routes here
   };
 }

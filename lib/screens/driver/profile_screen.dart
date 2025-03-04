@@ -13,6 +13,7 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -25,7 +26,7 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
                 Container(
                   height: 180, // Height of the blue banner
                   decoration: const BoxDecoration(
-                    color: Colors.blue,
+                    color: Colors.blueAccent,
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(20),
                       bottomRight: Radius.circular(20),

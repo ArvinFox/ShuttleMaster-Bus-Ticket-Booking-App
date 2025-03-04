@@ -16,29 +16,31 @@ class RidesScreen extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(top: 15),
-          child: Center(
-            child: Column(
-              children: [
-                _buildRideOption(
-                  'Private Bus',
-                  'assets/images/privateBus.jpg',
-                  () => Navigator.pushNamed(context, '/privateBusScreen'),
-                ),
-                _buildRideOption(
-                  'NSBM Bus',
-                  'assets/images/nsbmBus.png',
-                  () => Navigator.pushNamed(context, '/nsbmBusScreen'),
-                  //Path to timetables
-                ),
-                _buildRideOption(
-                  'Public Transport',
-                  'assets/images/privateBus.jpg',
-                  () => Navigator.pushNamed(context, '/publicTransportScreen'),
-                  //Path to timetables
-                ),
-              ],
+        child: Center(
+          child: SingleChildScrollView(
+            padding: EdgeInsets.only(top: 15),
+            child: Center(
+              child: Column(
+                children: [
+                  _buildRideOption(
+                    'Private Bus',
+                    'assets/images/privateBus.jpg',
+                    () => Navigator.pushNamed(context, '/privateBusScreen'),
+                  ),
+                  _buildRideOption(
+                    'NSBM Bus',
+                    'assets/images/nsbmBus.png',
+                    () => Navigator.pushNamed(context, '/NSBM-Bus'),
+                    //Path to timetables
+                  ),
+                  _buildRideOption(
+                    'Public Transport',
+                    'assets/images/privateBus.jpg',
+                    () => Navigator.pushNamed(context, '/public-transport'),
+                    //Path to timetables
+                  ),
+                ],
+              ),
             ),
           ),
         ),

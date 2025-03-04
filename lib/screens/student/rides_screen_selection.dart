@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:shuttlemaster/components/rides_info_card.dart';
 
 class RidesScreenSelection extends StatefulWidget {
-  const RidesScreenSelection({super.key});
+  final String busType;
+
+  const RidesScreenSelection({super.key, required this.busType});
 
   @override
   _RidesScreenSelectionState createState() => _RidesScreenSelectionState();
@@ -27,58 +29,134 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
   final TextEditingController _pickupController = TextEditingController();
   final TextEditingController _dropController = TextEditingController();
 
+  List<Map<String, String>> timetable = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.busType != "Private Bus") {
+      fetchTimetable();
+    }
+  }
+
+  void fetchTimetable() {
+  print("Fetching timetable for: ${widget.busType}");
+  setState(() {
+    timetable = [
+      if (widget.busType == "NSBM Bus") ...[
+        {"busNo": "NSBM Bus 1", "start": "Homagama", "end": "NSBM", "time": "7:30 AM"},
+        {"busNo": "NSBM Bus 2", "start": "Colombo", "end": "NSBM", "time": "9:00 AM"},
+        {"busNo": "NSBM Bus 3", "start": "Colombo", "end": "NSBM", "time": "9:00 AM"},
+      ] else if (widget.busType == "Public Transport") ...[
+        {"busNo": "NA 0019", "start": "Pettah", "end": "NSBM", "time": "6:45 AM"},
+        {"busNo": "NC 0018", "start": "Kottawa", "end": "NSBM", "time": "8:15 AM"},
+      ]
+    ];
+  });
+}
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          'Rides',
-          style: TextStyle(fontWeight: FontWeight.w500),
-        ),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
-      ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.only(top: 15),
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.all(15),
-              child: Column(
-                children: [
-                  _buildRideSearch(),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  RideInfoCard(
-                    busNo: "NA 0090",
-                    startPoint: "Kadawatha",
-                    endPoint: "NSBM",
-                    time: "8:00 AM",
-                    price: "Rs. 300.00",
-                    seatAvailability: "Yes",
-                    btnShown: true,
-                  ),
-                  RideInfoCard(
-                    busNo: "NA 0090",
-                    startPoint: "Kadawatha",
-                    endPoint: "NSBM",
-                    time: "8:00 AM",
-                    price: "Rs. 300.00",
-                    seatAvailability: "No",
-                    btnShown: false,
-                  ),
-                ],
+  return Scaffold(
+    backgroundColor: Colors.white,
+    appBar: AppBar(
+      title: Text('Rides'),
+      backgroundColor: Colors.blueAccent,
+      foregroundColor: Colors.white,
+    ),
+    body: SafeArea(
+      child: widget.busType == "Private Bus" 
+        ? _buildRideSearch() 
+        : _buildTimetableUI(),
+    ),
+  );
+}
+
+  Widget _buildRideSearch() {
+    return SingleChildScrollView(
+      padding: EdgeInsets.only(top: 15),
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.all(15),
+          child: Column(
+            children: [
+              _buildSearchFields(),
+              SizedBox(height: 20),
+              RideInfoCard(
+                busNo: "NA 0090",
+                startPoint: "Kadawatha",
+                endPoint: "NSBM",
+                time: "8:00 AM",
+                price: "Rs. 300.00",
+                seatAvailability: "Yes",
+                btnShown: true,
               ),
-            ),
+              RideInfoCard(
+                busNo: "NA 0090",
+                startPoint: "Kadawatha",
+                endPoint: "NSBM",
+                time: "8:00 AM",
+                price: "Rs. 300.00",
+                seatAvailability: "No",
+                btnShown: false,
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildRideSearch() {
+Widget _buildTimetableUI() {
+  return Padding(
+    padding: EdgeInsets.all(15),
+    child: LayoutBuilder(
+      builder: (context, constraints) {
+        double screenWidth = constraints.maxWidth;
+
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              minWidth: screenWidth,
+            ),
+            child: DataTable(
+              columnSpacing: 20,
+              headingRowColor: MaterialStateColor.resolveWith((states) => Colors.blueAccent), // Header row color
+              headingTextStyle: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+              dataRowHeight: 60,
+              columns: const [
+                DataColumn(label: Text('Bus No', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),)),
+                DataColumn(label: Text('Start Point', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),)),
+                DataColumn(label: Text('End Point', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),)),
+                DataColumn(label: Text('Time', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),)),
+              ],
+              rows: timetable.map((ride) {
+                return DataRow(
+                  color: MaterialStateProperty.all(
+                    timetable.indexOf(ride) % 2 == 0 ? Colors.grey[200]! : Colors.white,
+                  ), // Alternate row colors
+                  cells: [
+                    DataCell(Text(ride["busNo"]!, style: TextStyle(fontSize: 14))),
+                    DataCell(Text(ride["start"]!, style: TextStyle(fontSize: 14))),
+                    DataCell(Text(ride["end"]!, style: TextStyle(fontSize: 14))),
+                    DataCell(Text(ride["time"]!, style: TextStyle(fontSize: 14))),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
+
+
+  Widget _buildSearchFields() {
     return Container(
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -112,8 +190,7 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
   }
 
   Widget _buildAutoCompleteTextField(String hintText, bool isPickup) {
-    TextEditingController controller =
-        isPickup ? _pickupController : _dropController;
+    TextEditingController controller = isPickup ? _pickupController : _dropController;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -129,9 +206,7 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
               return const Iterable<String>.empty();
             }
             return _suggestions.where((String option) {
-              return option
-                  .toLowerCase()
-                  .contains(textEditingValue.text.toLowerCase());
+              return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
             });
           },
           onSelected: (String selection) {
@@ -149,43 +224,12 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
               }
             });
           },
-          fieldViewBuilder:
-              (context, textController, focusNode, onEditingComplete) {
+          fieldViewBuilder: (context, textController, focusNode, onEditingComplete) {
             textController.text = controller.text;
-
             return TextField(
               controller: textController,
               focusNode: focusNode,
               onEditingComplete: onEditingComplete,
-              onChanged: (value) {
-                if (value == "NSBM Green University") {
-                  // Prevent partial deletion by re-selecting text
-                  textController.selection = TextSelection(
-                    baseOffset: 0,
-                    extentOffset: value.length,
-                  );
-                } else if (_pickupLocation == "NSBM Green University" &&
-                    isPickup &&
-                    value.length < "NSBM Green University".length) {
-                  // If user tries to erase NSBM from Pickup, clear both fields
-                  setState(() {
-                    _pickupLocation = null;
-                    _dropLocation = null;
-                    _pickupController.clear();
-                    _dropController.clear();
-                  });
-                } else if (_dropLocation == "NSBM Green University" &&
-                    !isPickup &&
-                    value.length < "NSBM Green University".length) {
-                  // If user tries to erase NSBM from Drop, clear both fields
-                  setState(() {
-                    _pickupLocation = null;
-                    _dropLocation = null;
-                    _pickupController.clear();
-                    _dropController.clear();
-                  });
-                }
-              },
               decoration: InputDecoration(
                 hintText: hintText,
                 filled: true,
@@ -194,16 +238,6 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
                   borderRadius: BorderRadius.circular(10),
                   borderSide: BorderSide(color: Colors.blueAccent, width: 1),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.blueAccent, width: 1),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.lightBlue, width: 2),
-                ),
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 15, vertical: 12),
               ),
             );
           },

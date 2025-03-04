@@ -1,17 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:shuttlemaster/components/rides_info_card.dart';
-
-class RidesBookingMonthly extends StatelessWidget {
-  const RidesBookingMonthly({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: RidesScreenMonthly(),
-    );
-  }
-}
 
 class RidesScreenMonthly extends StatefulWidget {
   const RidesScreenMonthly({super.key});
@@ -26,15 +14,14 @@ class RidesScreenState extends State<RidesScreenMonthly> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        leading: CupertinoNavigationBarBackButton(
-          color: Colors.white,
-          onPressed: () {
-            Navigator.pop(context);
-          },
+        title: Text(
+          'Rides',
+          style: TextStyle(fontWeight: FontWeight.w500),
         ),
-        title: Text("Rides", style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blueAccent,
+        foregroundColor: Colors.white,
       ),
       body: Padding(
         padding: EdgeInsets.all(16.0),
