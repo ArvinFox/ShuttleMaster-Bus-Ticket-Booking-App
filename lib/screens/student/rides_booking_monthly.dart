@@ -36,7 +36,7 @@ class RidesScreenState extends State<RidesScreenMonthly> {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 20),
-            
+
             // Ride Info Card
             RideInfoCard(
               busNo: "NA 0090",
