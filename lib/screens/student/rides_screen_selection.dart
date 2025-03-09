@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shuttlemaster/components/custom_main_appbar.dart';
 import 'package:shuttlemaster/components/rides_info_card.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
 
 class RidesScreenSelection extends StatefulWidget {
   final String busType;
@@ -41,38 +43,56 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
   }
 
   void fetchTimetable() {
-  print("Fetching timetable for: ${widget.busType}");
-  setState(() {
-    timetable = [
-      if (widget.busType == "NSBM Bus") ...[
-        {"busNo": "NSBM Bus 1", "start": "Homagama", "end": "NSBM", "time": "7:30 AM"},
-        {"busNo": "NSBM Bus 2", "start": "Colombo", "end": "NSBM", "time": "9:00 AM"},
-        {"busNo": "NSBM Bus 3", "start": "Colombo", "end": "NSBM", "time": "9:00 AM"},
-      ] else if (widget.busType == "Public Transport") ...[
-        {"busNo": "NA 0019", "start": "Pettah", "end": "NSBM", "time": "6:45 AM"},
-        {"busNo": "NC 0018", "start": "Kottawa", "end": "NSBM", "time": "8:15 AM"},
-      ]
-    ];
-  });
-}
+  String collectionPath;
+
+  if (widget.busType == "NSBM Bus") {
+    collectionPath = 'bus_timetables/nsbm_bus/timetable';
+  } else {
+    collectionPath = 'bus_timetables/public_transport/timetable';
+  }
+
+  FirebaseFirestore.instance
+      .collection(collectionPath)
+      .get()
+      .then((querySnapshot) {
+      List<Map<String, String>> fetchedTimetable = [];
+      for (var doc in querySnapshot.docs) {
+        DateTime time = (doc["time"] as Timestamp).toDate();
+        String formattedTime = DateFormat('h:mm a').format(time);
+
+        fetchedTimetable.add({
+          "busNo": doc["busNo"],
+          "start": doc["start"],
+          "end": doc["end"],
+          "time": formattedTime,
+        });
+      }
+      setState(() {
+        timetable = fetchedTimetable;
+      });
+    }).catchError((error) {
+
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Colors.white,
-    // appBar: AppBar(
-    //   title: Text('Rides'),
-    //   backgroundColor: Colors.blueAccent,
-    //   foregroundColor: Colors.white,
-    // ),
-    appBar: CustomMainAppbar(title: 'Rides'),
-    body: SafeArea(
-      child: widget.busType == "Private Bus" 
-        ? _buildRideSearch() 
-        : _buildTimetableUI(),
-    ),
-  );
-}
+    return Scaffold(
+      backgroundColor: Colors.white,
+      // appBar: AppBar(
+      //   title: Text('Rides'),
+      //   backgroundColor: Colors.blueAccent,
+      //   foregroundColor: Colors.white,
+      // ),
+      appBar: CustomMainAppbar(title: 'Rides'),
+      body: SafeArea(
+        child: widget.busType == "Private Bus"
+            ? _buildRideSearch()
+            : _buildTimetableUI(),
+      ),
+    );
+  }
 
   Widget _buildRideSearch() {
     return SingleChildScrollView(
@@ -109,54 +129,76 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
     );
   }
 
-Widget _buildTimetableUI() {
-  return Padding(
-    padding: EdgeInsets.all(15),
-    child: LayoutBuilder(
-      builder: (context, constraints) {
-        double screenWidth = constraints.maxWidth;
+  Widget _buildTimetableUI() {
+    return Padding(
+      padding: EdgeInsets.all(15),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          double screenWidth = constraints.maxWidth;
 
-        return SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              minWidth: screenWidth,
-            ),
-            child: DataTable(
-              columnSpacing: 20,
-              headingRowColor: MaterialStateColor.resolveWith((states) => Colors.blueAccent), // Header row color
-              headingTextStyle: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+          return SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minWidth: screenWidth,
               ),
-              dataRowHeight: 60,
-              columns: const [
-                DataColumn(label: Text('Bus No', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),)),
-                DataColumn(label: Text('Start Point', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),)),
-                DataColumn(label: Text('End Point', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),)),
-                DataColumn(label: Text('Time', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),)),
-              ],
-              rows: timetable.map((ride) {
-                return DataRow(
-                  color: MaterialStateProperty.all(
-                    timetable.indexOf(ride) % 2 == 0 ? Colors.grey[200]! : Colors.white,
-                  ), // Alternate row colors
-                  cells: [
-                    DataCell(Text(ride["busNo"]!, style: TextStyle(fontSize: 14))),
-                    DataCell(Text(ride["start"]!, style: TextStyle(fontSize: 14))),
-                    DataCell(Text(ride["end"]!, style: TextStyle(fontSize: 14))),
-                    DataCell(Text(ride["time"]!, style: TextStyle(fontSize: 14))),
-                  ],
-                );
-              }).toList(),
+              child: DataTable(
+                columnSpacing: 20,
+                headingRowColor: MaterialStateColor.resolveWith(
+                    (states) => Colors.blueAccent), // Header row color
+                headingTextStyle: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
+                dataRowHeight: 60,
+                columns: const [
+                  DataColumn(
+                      label: Text(
+                    'Bus No',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  )),
+                  DataColumn(
+                      label: Text(
+                    'Start Point',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  )),
+                  DataColumn(
+                      label: Text(
+                    'End Point',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  )),
+                  DataColumn(
+                      label: Text(
+                    'Time',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  )),
+                ],
+                rows: timetable.map((ride) {
+                  return DataRow(
+                    color: MaterialStateProperty.all(
+                      timetable.indexOf(ride) % 2 == 0
+                          ? Colors.grey[200]!
+                          : Colors.white,
+                    ),
+                    cells: [
+                      DataCell(
+                          Text(ride["busNo"]!, style: TextStyle(fontSize: 14))),
+                      DataCell(
+                          Text(ride["start"]!, style: TextStyle(fontSize: 14))),
+                      DataCell(
+                          Text(ride["end"]!, style: TextStyle(fontSize: 14))),
+                      DataCell(
+                          Text(ride["time"]!, style: TextStyle(fontSize: 14))),
+                    ],
+                  );
+                }).toList(),
+              ),
             ),
-          ),
-        );
-      },
-    ),
-  );
-}
-
+          );
+        },
+      ),
+    );
+  }
 
   Widget _buildSearchFields() {
     return Container(
@@ -192,7 +234,8 @@ Widget _buildTimetableUI() {
   }
 
   Widget _buildAutoCompleteTextField(String hintText, bool isPickup) {
-    TextEditingController controller = isPickup ? _pickupController : _dropController;
+    TextEditingController controller =
+        isPickup ? _pickupController : _dropController;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -208,7 +251,9 @@ Widget _buildTimetableUI() {
               return const Iterable<String>.empty();
             }
             return _suggestions.where((String option) {
-              return option.toLowerCase().contains(textEditingValue.text.toLowerCase());
+              return option
+                  .toLowerCase()
+                  .contains(textEditingValue.text.toLowerCase());
             });
           },
           onSelected: (String selection) {
@@ -226,7 +271,8 @@ Widget _buildTimetableUI() {
               }
             });
           },
-          fieldViewBuilder: (context, textController, focusNode, onEditingComplete) {
+          fieldViewBuilder:
+              (context, textController, focusNode, onEditingComplete) {
             textController.text = controller.text;
             return TextField(
               controller: textController,
