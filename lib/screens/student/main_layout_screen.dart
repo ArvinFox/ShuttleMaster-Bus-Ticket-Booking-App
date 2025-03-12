@@ -18,7 +18,6 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     RidesScreen(),
     ProfileScreenStuent(),// Add Notification Page here
     ProfileScreenStuent(),
-    // Add the other navigation screens here (Notifications, Account)
   ];
 
   void _onItemTapped(int index) {

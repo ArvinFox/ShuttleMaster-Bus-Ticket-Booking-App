@@ -8,8 +8,8 @@ class Formatters {
     return phoneNumber;
   }
 
-  static String getMaskedPhoneNumber(String phoneNumber) {
-    String formatPhone = Formatters.formatPhoneNumber(phoneNumber);
+  static String getMaskedPhoneNumber(String? phoneNumber) {
+    String formatPhone = Formatters.formatPhoneNumber(phoneNumber!);
     int starsCount = formatPhone.length - 6;
     return formatPhone.substring(0, 3) + ('*' * starsCount) + formatPhone.substring(formatPhone.length - 3);
   }

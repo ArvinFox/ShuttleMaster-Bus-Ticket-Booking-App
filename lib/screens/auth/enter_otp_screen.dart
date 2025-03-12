@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shuttlemaster/components/custom_auth_appbar.dart';
 import 'package:shuttlemaster/components/custom_button.dart';
 import 'package:shuttlemaster/components/custom_greeting.dart';
 import 'package:shuttlemaster/constants/app_config.dart';
 import 'package:shuttlemaster/models/user_model.dart';
+import 'package:shuttlemaster/providers/user_provider.dart';
 import 'package:shuttlemaster/services/otp_service.dart';
-import 'package:shuttlemaster/services/user_service.dart';
 import 'package:shuttlemaster/utils/formatters.dart';
 import 'package:shuttlemaster/utils/helpers.dart';
 
@@ -20,48 +21,13 @@ class EnterOtpScreen extends StatefulWidget {
 class _EnterOtpScreenState extends State<EnterOtpScreen> {
   final _otpController = TextEditingController();
   final _otpService = OtpService();
-  final _userService = UserService();
 
-  bool _isFetching = true;
   bool _isLoading = false;
   bool _isOtpSent = false;
-  String? _contactInfo;
   int _remainingTime = 30;
   Timer? _timer;
   String? _generatedOtp;
   DateTime? _otpExpiryTime;
-
-  Future<void> _fetchUserInfo(String otpMethod, String id, String role) async {
-    try {
-      String contactInfo = await _getUserContactInfo(otpMethod, id, role);
-
-      setState(() {
-        _contactInfo = contactInfo;
-        _isFetching = false;
-      });
-
-    } catch (e) {
-      Helpers.showMessage(context, "Failed to load user information. Please try again.");
-      setState(() {
-        _isFetching = false;
-      });
-    }
-  }
-
-  Future<String> _getUserContactInfo(String contactType, String id, String role) async {
-    UserModel? user = await _userService.getUserById(id, role);
-
-    if (user == null) throw Exception("User not found");
-
-    switch (contactType) {
-      case AppConfig.otpPhone:
-        return user.phone;
-      case AppConfig.otpEmail:
-        return ((user) as PassengerModel).email;
-      default:
-        throw Exception("Invalid contact type: $contactType");
-    }
-  }
 
   @override
   void initState() {
@@ -82,12 +48,18 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
     final String role = args?['role'] ?? AppConfig.passengerRole;
     final String otpMethod = args?['otp-method'] ?? AppConfig.otpPhone;
 
-    await _fetchUserInfo(otpMethod, id, role);
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    if (userProvider.user == null && !userProvider.isLoading) {
+      await userProvider.fetchUser(id, role);
+    }
+    final contactInfo = (otpMethod == AppConfig.otpEmail)
+      ? (userProvider.user as PassengerModel).email
+      : userProvider.user?.phone;
 
     String otp = Helpers.generateOtp();
     bool isSuccess = otpMethod == AppConfig.otpEmail
-      ? await _otpService.sendEmailOtp(_contactInfo!, otp)
-      : await _otpService.sendSMSOtp(_contactInfo!, otp);
+      ? await _otpService.sendEmailOtp(contactInfo!, otp)
+      : await _otpService.sendSMSOtp(contactInfo!, otp);
 
     if (isSuccess) {
       setState(() {
@@ -177,7 +149,7 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
 
   Future<String> getUserHomeRoute(String? role) async {
     await Future.delayed(Duration(milliseconds: 250));
-    return (role == AppConfig.passengerRole) ? "/student/home" : "/driver-profile";
+    return (role == AppConfig.passengerRole) ? "/student/home" : "/driver/home";
   }
 
   @override
@@ -192,6 +164,8 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
     // Retrieve user role, id, and otp method
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     final String otpMethod = args?['otp-method'] ?? AppConfig.otpPhone;
+
+    final userProvider = Provider.of<UserProvider>(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -214,11 +188,11 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
                 Image.asset("assets/images/common-image.png", height: 200),
                 SizedBox(height: 30),
 
-                if (_isFetching)
+                if (userProvider.isLoading)
                   CircularProgressIndicator()
                 else ...[
                   Text(
-                    "We've sent an OTP to your $otpMethod (${otpMethod == AppConfig.otpEmail ? Formatters.getMaskedEmail(_contactInfo!) : Formatters.getMaskedPhoneNumber(_contactInfo!)}). \nEnter it below to continue.",
+                    "We've sent an OTP to your $otpMethod (${otpMethod == AppConfig.otpEmail ? Formatters.getMaskedEmail((userProvider.user as PassengerModel).email) : Formatters.getMaskedPhoneNumber(userProvider.user?.phone)}). \nEnter it below to continue.",
                     style: TextStyle(fontSize: 15),
                     textAlign: TextAlign.center,
                   ),

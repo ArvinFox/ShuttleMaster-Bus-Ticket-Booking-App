@@ -7,10 +7,12 @@ import 'package:shuttlemaster/screens/student/topup_screen.dart';
 import 'package:shuttlemaster/screens/student/total_payable.dart';
 import 'package:shuttlemaster/screens/student/traveling_history.dart';
 import 'package:shuttlemaster/screens/student/rides_screen_selection.dart';
+import 'package:shuttlemaster/screens/student/view_profile.dart';
 
 class StudentRoutes {
   static Map<String, WidgetBuilder> routes = {
     '/student/home': (context) => MainLayoutScreen(),
+    '/student/view-profile': (context) => ViewProfileStudent(),
     '/traveling-history':(context) => TravelingHistory(initialIndex: 0),
     '/view-traveling-history':(context) => TravelingHistory(initialIndex: 1),
     '/pay-later':(context) => TravelingHistory(initialIndex: 3),

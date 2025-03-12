@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shuttlemaster/components/custom_auth_appbar.dart';
 import 'package:shuttlemaster/components/custom_button.dart';
 import 'package:shuttlemaster/components/custom_greeting.dart';
 import 'package:shuttlemaster/constants/app_config.dart';
 import 'package:shuttlemaster/models/user_model.dart';
-import 'package:shuttlemaster/services/user_service.dart';
+import 'package:shuttlemaster/providers/user_provider.dart';
 import 'package:shuttlemaster/utils/formatters.dart';
 import 'package:shuttlemaster/utils/helpers.dart';
 
@@ -16,55 +17,27 @@ class SelectOtpMethodScreen extends StatefulWidget {
 }
 
 class _SelectOtpMethodScreenState extends State<SelectOtpMethodScreen> {
-  final _userService = UserService();
-  
   String? _selectedMethod;
-  String? _phone;
-  String? _email;
-  bool _isLoading = true;
 
-  Future<void> _fetchUserInfo(String id, String role) async {
-    try {
-      String phone = await _getUserContactInfo(AppConfig.otpPhone, id, role);
-      String email = await _getUserContactInfo(AppConfig.otpEmail, id, role);
+  @override
+  void initState() {
+    super.initState();
 
-      setState(() {
-        _phone = phone;
-        _email = email;
-        _isLoading = false;
-      });
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final String id = args?['id'] ?? AppConfig.invalidId;
+      final String role = args?['role'] ?? AppConfig.passengerRole;
 
-    } catch (e) {
-      Helpers.showMessage(context, "Failed to load user information. Please try again.");
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<String> _getUserContactInfo(String contactType, String id, String role) async {
-    PassengerModel? user = (await _userService.getUserById(id, role)) as PassengerModel?;
-
-    if (user == null) throw Exception("User not found");
-
-    switch (contactType) {
-      case AppConfig.otpPhone:
-        return Formatters.formatPhoneNumber(user.phone);
-      case AppConfig.otpEmail:
-        return user.email;
-      default:
-        throw Exception("Invalid contact type: $contactType");
-    }
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      if (userProvider.user == null && !userProvider.isLoading) {
+        await userProvider.fetchUser(id, role);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Retrieve user role and id
-    final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    final String id = args?['id'] ?? AppConfig.invalidId;
-    final String role = args?['role'] ?? AppConfig.passengerRole;
-
-    _fetchUserInfo(id, role);
+    final userProvider = Provider.of<UserProvider>(context);
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -94,12 +67,12 @@ class _SelectOtpMethodScreenState extends State<SelectOtpMethodScreen> {
                 ),
                 SizedBox(height: 15),
 
-                if (_isLoading)
+                if (userProvider.isLoading)
                   CircularProgressIndicator()
                 else ...[
                   RadioListTile<String>(
                     title: Text(
-                      "Mobile number: ${Formatters.getMaskedPhoneNumber(_phone!)}"
+                      "Mobile number: ${Formatters.getMaskedPhoneNumber(userProvider.user?.phone)}"
                     ),
                     value: AppConfig.otpPhone,
                     groupValue: _selectedMethod,
@@ -111,7 +84,7 @@ class _SelectOtpMethodScreenState extends State<SelectOtpMethodScreen> {
                   ),
                   RadioListTile<String>(
                     title: Text(
-                      "Email address: ${Formatters.getMaskedEmail(_email!)}"
+                      "Email address: ${Formatters.getMaskedEmail((userProvider.user as PassengerModel).email)}"
                     ),
                     value: AppConfig.otpEmail,
                     groupValue: _selectedMethod,
@@ -128,6 +101,10 @@ class _SelectOtpMethodScreenState extends State<SelectOtpMethodScreen> {
                   label: "Continue",
                   onPressed: () {
                     if (_selectedMethod != null) {
+                      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+                      final String id = args?['id'] ?? AppConfig.invalidId;
+                      final String role = args?['role'] ?? AppConfig.passengerRole;
+
                       Navigator.pushNamed(
                         context,
                         '/enter-otp',

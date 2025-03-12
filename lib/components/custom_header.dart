@@ -1,9 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:shuttlemaster/constants/app_config.dart';
 
 class CustomHeader extends StatelessWidget {
   final String role;
+  final String name;
+  final double? accountBalance;
+  final String? busNo;
 
-  const CustomHeader({super.key, required this.role});
+  const CustomHeader({
+    super.key, 
+    required this.role, 
+    required this.name,
+    this.accountBalance = 0.0,
+    this.busNo = "NA-1090",
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +51,7 @@ class CustomHeader extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        "@Username",
+                        name,
                         style: TextStyle(
                           fontSize: 16,
                           color: Colors.white,
@@ -80,14 +90,18 @@ class CustomHeader extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(
-            role == 'driver' ? 'Kadawatha - NSBM' : 'Current Account Balance:',
+            role == AppConfig.driverRole 
+              ? 'Kadawatha - NSBM' 
+              : 'Current Account Balance:',
             style: TextStyle(
               color: Colors.black,
               fontSize: 16,
             ),
           ),
           Text(
-            role == 'driver' ? 'NA-1090' : '500.00',
+            role == AppConfig.driverRole 
+              ? busNo! 
+              : accountBalance!.toString(),
             style: TextStyle(
               color: Colors.black,
               fontSize: 18,

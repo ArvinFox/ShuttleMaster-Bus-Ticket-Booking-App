@@ -1,8 +1,91 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shuttlemaster/components/custom_header.dart';
+import 'package:shuttlemaster/constants/app_config.dart';
+import 'package:shuttlemaster/models/user_model.dart';
+import 'package:shuttlemaster/providers/user_provider.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _handleAutoLogin();
+    });
+  }
+
+  Future<void> _handleAutoLogin() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool? staySignedIn = prefs.getBool(AppConfig.staySignedInKey);
+    String? userId = prefs.getString(AppConfig.userIdKey);
+    String? userRole = prefs.getString(AppConfig.userRoleKey);
+
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    if (staySignedIn == true && userId != null && userRole != null) {
+      if (userProvider.user == null && !userProvider.isLoading) {
+        await userProvider.fetchUser(userId, userRole);
+      }
+    } else {
+      await _checkStaySignedInPreference();
+    }
+  }
+
+  Future<void> _checkStaySignedInPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool? staySignedIn = prefs.getBool(AppConfig.staySignedInKey);
+
+    if (staySignedIn == null) {
+      _showStaySignedInDialog();
+    }
+  }
+
+  void _showStaySignedInDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Stay Signed In?"),
+          content: Text("Would you like to stay signed in on this device for easier access next time?"),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool(AppConfig.staySignedInKey, false);
+                Navigator.of(context).pop();
+              },
+              child: Text("No"),
+            ),
+            TextButton(
+              onPressed: () async {
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.setBool(AppConfig.staySignedInKey, true);
+
+                final userProvider = Provider.of<UserProvider>(context, listen: false);
+                if (userProvider.user != null) {
+                  await prefs.setString(AppConfig.userIdKey, userProvider.user!.userId);
+                  await prefs.setString(AppConfig.userRoleKey, userProvider.user!.role);
+                }
+
+                Navigator.of(context).pop();
+              },
+              child: Text("Yes"),
+            ),
+          ],
+        );
+      }
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +101,20 @@ class HomeScreen extends StatelessWidget {
           ),
           child: Column(
             children: [
-              CustomHeader(role: 'student'),
+              Consumer<UserProvider>(
+                builder: (context, userProvider, child) {
+                  if (userProvider.isLoading) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  final user = userProvider.user;
+                  return CustomHeader(
+                    role: AppConfig.passengerRole,
+                    name: user?.name ?? "User",
+                    accountBalance: (user as PassengerModel).walletBalance,
+                  );
+                },
+              ),
               _buildMyRides(),
               _buildQuickAccessGrid(context),
             ],

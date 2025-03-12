@@ -11,6 +11,11 @@ class AppConfig {
   // Invalid ID
   static const String invalidId = "unknown";
 
+  // Shared Preferences Keys
+  static const String staySignedInKey = "staySignedIn";
+  static const String userIdKey = "userId";
+  static const String userRoleKey = "role";
+
   // Firestore Collections
   static const String passengersCollection = "passengers";
   static const String driversCollection = "drivers";
