@@ -136,13 +136,11 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
     if (isCorrectOtp) {
       final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       final String role = args?['role'] ?? AppConfig.passengerRole;
-      final String id = args?['id'] ?? AppConfig.invalidId;
 
       Navigator.pushNamedAndRemoveUntil(
         context,
         await getUserHomeRoute(role),
         (route) => false,
-        arguments: {"id": id},
       );
     }
   }

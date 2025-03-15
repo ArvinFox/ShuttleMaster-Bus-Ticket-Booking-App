@@ -17,12 +17,13 @@ class UserProvider extends ChangeNotifier {
 
     try {
       UserModel? userData = await _userService.getUserById(id, role);
-      if (userData != null) {
-        _user = userData;
-      }
+      _user = userData;
+      
     } catch (e) {
       Helpers.debugPrintWithBorder("Error fetching user: $e");
     }
+
+    await Future.delayed(Duration(seconds: 1));
 
     _isLoading = false;
     notifyListeners();

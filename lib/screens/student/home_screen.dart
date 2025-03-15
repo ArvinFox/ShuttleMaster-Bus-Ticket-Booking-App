@@ -25,6 +25,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _handleAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
+
+    bool? hasVisitedHome = prefs.getBool(AppConfig.hasVisitedHomeKey);
+    if (hasVisitedHome == null) {
+      await prefs.setBool(AppConfig.hasVisitedHomeKey, true);
+    }
+
     bool? staySignedIn = prefs.getBool(AppConfig.staySignedInKey);
     String? userId = prefs.getString(AppConfig.userIdKey);
     String? userRole = prefs.getString(AppConfig.userRoleKey);
@@ -55,16 +61,37 @@ class _HomeScreenState extends State<HomeScreen> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Stay Signed In?"),
-          content: Text("Would you like to stay signed in on this device for easier access next time?"),
+          title: Text(
+            "Stay Signed In?",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.black,
+            ),
+          ),
+          content: Text(
+            "Would you like to stay signed in on this device for easier access next time?",
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.black87,
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () async {
                 final prefs = await SharedPreferences.getInstance();
                 await prefs.setBool(AppConfig.staySignedInKey, false);
+                prefs.remove(AppConfig.userIdKey);
+                prefs.remove(AppConfig.userRoleKey);
                 Navigator.of(context).pop();
               },
-              child: Text("No"),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blueAccent,
+                backgroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text("No", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
             ),
             TextButton(
               onPressed: () async {
@@ -79,9 +106,20 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 Navigator.of(context).pop();
               },
-              child: Text("Yes"),
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.blueAccent,
+                backgroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text("Yes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
             ),
           ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 24),
+          backgroundColor: Colors.white,
         );
       }
     );

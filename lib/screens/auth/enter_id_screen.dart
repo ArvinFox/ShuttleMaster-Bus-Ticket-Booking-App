@@ -86,16 +86,13 @@ class _EnterIdScreenState extends State<EnterIdScreen> {
                           String message = role == AppConfig.passengerRole
                             ? "Passenger not found. Please check your NSBM ID."
                             : "Driver not found. Please check your NIC.";
-                          
-                          await Future.delayed(Duration(milliseconds: 750));
+
                           Helpers.showMessage(context, message);
                           return;
                         }
                     
                         String route = "/select-otp-method";
                         if (role != AppConfig.passengerRole) route = "/enter-otp";
-
-                        await Future.delayed(Duration(seconds: 1));
                       
                         Navigator.pushNamed(
                           context, 
