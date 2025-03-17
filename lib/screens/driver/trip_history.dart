@@ -1,5 +1,9 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shuttlemaster/components/custom_main_appbar.dart';
+import 'package:shuttlemaster/providers/rides_provider.dart';
+import 'package:shuttlemaster/providers/user_provider.dart';
+import 'package:shuttlemaster/utils/formatters.dart';
 
 class TripHistory extends StatefulWidget {
   const TripHistory({super.key});
@@ -10,31 +14,58 @@ class TripHistory extends StatefulWidget {
 
 class _TripHistoryState extends State<TripHistory> {
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final driverId = Provider.of<UserProvider>(context, listen: false).user?.userId;
+
+      if (driverId != null) {
+        Provider.of<RidesProvider>(context, listen: false).fetchRideHistory(driverId);
+      } else {
+        print("driver Id not found");
+      }
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
-        title: Text(
-          "Trip History",
-          style: TextStyle(
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        leading: CupertinoNavigationBarBackButton(
-          color: Colors.white,
-          onPressed: () {
-            Navigator.popAndPushNamed(context, '/driver-profile');
-          },
-        ),
-        leadingWidth: 40,
+      backgroundColor: Colors.white,
+      appBar: CustomMainAppbar(title: 'Trip History'),
+      body: Consumer<RidesProvider>(
+        builder: (context, ridesProvider, child) {
+          if (ridesProvider.rides.isEmpty) {
+            return Center(child: Text("No trip history available"));
+          } 
+          else 
+          {
+            if (ridesProvider.isLoading) {
+              return Center(child: CircularProgressIndicator());
+            }
+
+            return ListView.builder(
+              itemCount: ridesProvider.rides.length,
+              itemBuilder: (context, index) {
+                final ride = ridesProvider.rides[index];
+                return _buildTripHistoryCard(
+                  Formatters.formatDate(ride.completedTime),
+                  Formatters.formatTime(ride.completedTime),
+                  ride.distance.toInt(),
+                  ride.totalIncome,
+                  ride.route['pickup'] ?? 'Pickup',
+                  ride.route['drop'] ?? 'Drop',
+                  Formatters.formatTime(ride.departureTime),
+                );
+              },
+            );
+          }
+        },
       ),
-      body: _buildTripHistoryCard("25 Jan 2025", "18:00 PM", 25, 30000),
     );
   }
 }
 
-Widget _buildTripHistoryCard(String date, String completedTime, int travelDistance, double income) {
+Widget _buildTripHistoryCard(String date, String completedTime,int travelDistance, double income, String pickup, String drop, String scheduleTime) {
   return Padding(
     padding: const EdgeInsets.all(10),
     child: Card(
@@ -69,17 +100,17 @@ Widget _buildTripHistoryCard(String date, String completedTime, int travelDistan
                           Text(
                             "Completed",
                             style: TextStyle(
-                                fontSize: 20,
-                                color: const Color.fromARGB(255, 28, 150, 34),
-                                fontWeight: FontWeight.bold),
+                              fontSize: 20,
+                              color: const Color.fromARGB(255, 28, 150, 34),
+                              fontWeight: FontWeight.bold
+                            ),
                           ),
                         ],
                       ),
                       Text(
                         date,
                         textAlign: TextAlign.right,
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w800),
+                        style: TextStyle(fontSize: 16,fontWeight: FontWeight.w800),
                       ),
                     ],
                   ),
@@ -98,7 +129,8 @@ Widget _buildTripHistoryCard(String date, String completedTime, int travelDistan
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
                   SizedBox(height: 8),
-                  _buildLocation("Kadawatha 18:00 PM"),
+                  // ignore: prefer_interpolation_to_compose_strings
+                  _buildLocation(pickup + '  ' + scheduleTime),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Container(
@@ -107,7 +139,8 @@ Widget _buildTripHistoryCard(String date, String completedTime, int travelDistan
                       color: Colors.black,
                     ),
                   ),
-                  _buildLocation("NSBM 17:00 PM"),
+                  // ignore: prefer_interpolation_to_compose_strings
+                  _buildLocation(drop + '  ' + completedTime),
                   Divider(color: Colors.black),
                 ],
               ),

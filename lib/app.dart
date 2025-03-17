@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shuttlemaster/providers/rides_provider.dart';
 import 'package:shuttlemaster/providers/user_provider.dart';
 import 'package:shuttlemaster/routes/app_routes.dart';
 import 'package:shuttlemaster/screens/static/welcome_screen.dart';
@@ -13,6 +14,7 @@ class ShuttleMaster extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => UserProvider()),
+        ChangeNotifierProvider(create: (_) => RidesProvider()),
       ],
       child: MaterialApp(
         title: "ShuttleMaster",

@@ -82,7 +82,7 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
             const SizedBox(height: 10),
 
             // List Items
-            _buildListItem(Icons.person, 'View Profile', ""),
+            _buildListItem(Icons.person, 'View Profile', "/driver/view-profile"),
             _buildListItem(Icons.history, 'Trip History', "/trip-history"),
             _buildListItem(Icons.support_agent, 'Help & Support', ""),
             _buildListItem(Icons.info_outline, 'About Us', "/about-us"),
@@ -95,7 +95,7 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
                 child: Column(
                   children: [
                     Text('All rights reserved. Developed by Group 10'),
-                    Text('(Batch 12 UOP - NGSM)'),
+                    Text('(Batch 12 UOP - NSBM)'),
                     Text('App version - 1.0.0'),
                   ],
                 ),
