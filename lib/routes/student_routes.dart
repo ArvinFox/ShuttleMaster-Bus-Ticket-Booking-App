@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shuttlemaster/screens/student/main_layout_screen.dart';
+import 'package:shuttlemaster/components/main_layout_screen.dart';
+import 'package:shuttlemaster/constants/app_config.dart';
 import 'package:shuttlemaster/screens/student/profile_screen.dart';
 import 'package:shuttlemaster/screens/student/rides_booking.dart';
 import 'package:shuttlemaster/screens/student/rides_booking_monthly.dart';
@@ -11,7 +12,7 @@ import 'package:shuttlemaster/screens/student/view_profile.dart';
 
 class StudentRoutes {
   static Map<String, WidgetBuilder> routes = {
-    '/student/home': (context) => MainLayoutScreen(),
+    '/student/home': (context) => MainLayoutScreen(userRole: AppConfig.passengerRole),
     '/student/view-profile': (context) => ViewProfileStudent(),
     '/traveling-history':(context) => TravelingHistory(initialIndex: 0),
     '/view-traveling-history':(context) => TravelingHistory(initialIndex: 1),

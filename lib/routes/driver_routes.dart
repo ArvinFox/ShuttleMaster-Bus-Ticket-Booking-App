@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:shuttlemaster/screens/driver/driver_home_screen.dart';
+import 'package:shuttlemaster/components/main_layout_screen.dart';
+import 'package:shuttlemaster/constants/app_config.dart';
 import 'package:shuttlemaster/screens/driver/profile_screen.dart';
 import 'package:shuttlemaster/screens/driver/trip_history.dart';
 
 class DriverRoutes {
   static Map<String, WidgetBuilder> routes = {
     // Add the driver's routes here
-    '/driver/home': (context) => DriverHomeScreen(),
+    '/driver/home': (context) => MainLayoutScreen(userRole: AppConfig.driverRole),
     '/trip-history':(context) => TripHistory(),
     '/driver-profile':(context) => ProfileScreenDriver(),
   };
