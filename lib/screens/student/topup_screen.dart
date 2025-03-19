@@ -1,27 +1,23 @@
-// import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:shuttlemaster/components/custom_main_appbar.dart';
+import 'package:flutter/services.dart';
+import 'package:shuttlemaster/utils/card_formatters.dart';
+import 'package:shuttlemaster/utils/card_validators.dart';
 
-class TopUpScreen extends StatelessWidget {
+class TopUpScreen extends StatefulWidget {
   const TopUpScreen({super.key});
+
+  @override
+  _TopUpScreenState createState() => _TopUpScreenState();
+}
+
+class _TopUpScreenState extends State<TopUpScreen> {
+  final _formKey = GlobalKey<FormState>();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // appBar: AppBar(
-      //   backgroundColor: Colors.blueAccent,
-      //   leading: CupertinoNavigationBarBackButton(
-      //     color: Colors.white,
-      //     onPressed: () => Navigator.pop(context),
-      //   ),
-      //   leadingWidth: 40,
-      //   title: Text(
-      //     'Top-up Account',
-      //     style: TextStyle(
-      //         color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-      //   ),
-      // ),
       appBar: CustomMainAppbar(title: 'Top-up Account'),
       body: SingleChildScrollView(
         child: Padding(
@@ -97,52 +93,86 @@ class TopUpScreen extends StatelessWidget {
               SizedBox(height: 20),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Card Number',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 5),
-                    TextField(
-                      decoration: InputDecoration(border: OutlineInputBorder()),
-                    ),
-                    SizedBox(height: 15),
-                    Text(
-                      'Valid Date',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 5),
-                    TextField(
-                      decoration: InputDecoration(border: OutlineInputBorder()),
-                    ),
-                    SizedBox(height: 15),
-                    Text(
-                      'Card Holder',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 5),
-                    TextField(
-                      decoration: InputDecoration(border: OutlineInputBorder()),
-                    ),
-                    SizedBox(height: 15),
-                    Text(
-                      'Pin Number',
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 5),
-                    TextField(
-                      obscureText: true,
-                      decoration: InputDecoration(border: OutlineInputBorder()),
-                    ),
-                    SizedBox(height: 25),
-                  ],
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Card Number',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 5),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: '1234 5678 9012 3456',
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          CardNumberFormatter()
+                        ],
+                        validator: Validators.validateCardNumber,
+                      ),
+                      SizedBox(height: 15),
+                      Text('Expiry Date',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 5),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'MM/YY',
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          ExpiryDateFormatter()
+                        ],
+                        validator: (value) {
+                          return Validators.validateExpiryDate(value);
+                        },
+                      ),
+                      SizedBox(height: 15),
+                      Text('Cardholder Name',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 5),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'Perera A',
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'[a-zA-Z ]'))
+                        ],
+                        validator: Validators.validateCardHolderName,
+                      ),
+                      SizedBox(height: 15),
+                      Text('CVV (PIN)',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 5),
+                      TextFormField(
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: '123',
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(3)
+                        ],
+                        validator: Validators.validateCVV,
+                      ),
+                      SizedBox(height: 25),
+                    ],
+                  ),
                 ),
               ),
               Center(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      // Process the top-up
+                    } else {
+                      // Show validation errors
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueAccent,
                     padding: EdgeInsets.symmetric(horizontal: 55, vertical: 13),

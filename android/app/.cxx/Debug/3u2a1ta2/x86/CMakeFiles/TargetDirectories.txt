@@ -1,0 +1,2 @@
+C:/ShuttleMaster-Bus-Ticket-Booking-App/android/app/.cxx/Debug/3u2a1ta2/x86/CMakeFiles/edit_cache.dir
+C:/ShuttleMaster-Bus-Ticket-Booking-App/android/app/.cxx/Debug/3u2a1ta2/x86/CMakeFiles/rebuild_cache.dir

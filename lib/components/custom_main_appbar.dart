@@ -18,13 +18,14 @@ class CustomMainAppbar extends StatelessWidget implements PreferredSizeWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
-      leading: CupertinoNavigationBarBackButton(
-        color: Colors.white,
+      leading: IconButton(
+        icon: Icon(CupertinoIcons.back, color: Colors.white, size: 28),
+        onPressed: () => Navigator.pop(context),
       ),
       leadingWidth: 40,
     );
   }
-  
+
   @override
   Size get preferredSize => Size.fromHeight(kToolbarHeight);
 }
