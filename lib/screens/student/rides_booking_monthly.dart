@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shuttlemaster/components/custom_main_appbar.dart';
 import 'package:shuttlemaster/components/rides_info_card.dart';
+import 'package:shuttlemaster/providers/user_provider.dart';
+import 'package:shuttlemaster/services/booking_service.dart';
+import 'package:shuttlemaster/utils/helpers.dart';
 
 class RidesScreenMonthly extends StatefulWidget {
   const RidesScreenMonthly({super.key});
@@ -11,71 +15,64 @@ class RidesScreenMonthly extends StatefulWidget {
 
 class RidesScreenState extends State<RidesScreenMonthly> {
   String? selectedPayment;
+  final bookingService = BookingService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // appBar: AppBar(
-      //   title: Text(
-      //     'Rides',
-      //     style: TextStyle(fontWeight: FontWeight.w500),
-      //   ),
-      //   backgroundColor: Colors.blueAccent,
-      //   foregroundColor: Colors.white,
-      // ),
       appBar: CustomMainAppbar(title: 'Rides'),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(height: 5),
-            Text(
-              "Join as a monthly member",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-
-            // Ride Info Card
-            RideInfoCard(
-              busNo: "NA 0090",
-              startPoint: "Kadawatha",
-              endPoint: "NSBM",
-              time: "8:00 AM",
-              price: "Rs. 300.00",
-              seatAvailability: "Yes",
-            ),
-
-            SizedBox(height: 25),
-            Text(
-              "Payment Method (Recurring)",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-
-            // Payment Options
-            _buildPaymentOption("Cash"),
-            _buildPaymentOption("Card"),
-            _buildPaymentOption("Current Balance"),
-
-            SizedBox(height: 40),
-
-            // OK Button
-            Center(
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
-                ),
-                onPressed: () {
-                  print("Selected Payment: $selectedPayment");
-                },
-                child: Text("OK",
-                    style: TextStyle(fontSize: 18, color: Colors.white)),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 5),
+              Text(
+                "Join as a monthly member",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            ),
-          ],
+              SizedBox(height: 20),
+
+              // Ride Info Card
+              RideInfoCard(
+                busNo: "NA 0090",
+                startPoint: "Kadawatha",
+                endPoint: "NSBM",
+                time: "8:00 AM",
+                price: "Rs. 300.00",
+                seatAvailability: "Yes",
+              ),
+
+              SizedBox(height: 25),
+              Text(
+                "Payment Method (Recurring)",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 20),
+
+              // Payment Options
+              _buildPaymentOption("Cash"),
+              _buildPaymentOption("Card"),
+              _buildPaymentOption("Current Balance"),
+
+              SizedBox(height: 40),
+
+              // OK Button
+              Center(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  ),
+                  onPressed: handleBooking,
+                  child: Text("OK",
+                      style: TextStyle(fontSize: 18, color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -100,5 +97,19 @@ class RidesScreenState extends State<RidesScreenMonthly> {
         Text(option, style: TextStyle(fontSize: 14)),
       ],
     );
+  }
+
+  void handleBooking() {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    if (selectedPayment == null) {
+      Helpers.showMessage(context, 'Please select a payment method');
+      return;
+    }
+
+    String rideId = '1';
+    String userId = userProvider.user!.userId;
+    double amount = 300;
+    bookingService.createMonthlyBooking(userId, rideId, amount);
   }
 }

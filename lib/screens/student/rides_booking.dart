@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shuttlemaster/components/custom_main_appbar.dart';
 import 'package:shuttlemaster/components/rides_info_card.dart';
+import 'package:shuttlemaster/providers/user_provider.dart';
+import 'package:shuttlemaster/services/booking_service.dart';
+import 'package:shuttlemaster/utils/helpers.dart';
 
 class BookingScreen extends StatefulWidget {
   const BookingScreen({super.key});
@@ -10,22 +14,15 @@ class BookingScreen extends StatefulWidget {
 }
 
 class BookingScreenState extends State<BookingScreen> {
-  String tripType = "";
-  String paymentMethod = "";
-  DateTime selectedDate = DateTime(2025, 2, 10);
+  String? tripType;
+  String? paymentMethod;
+  DateTime selectedDate = DateTime.now();
+  final bookingService = BookingService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      // appBar: AppBar(
-      //   title: Text(
-      //     'Rides',
-      //     style: TextStyle(fontWeight: FontWeight.w500),
-      //   ),
-      //   backgroundColor: Colors.blueAccent,
-      //   foregroundColor: Colors.white,
-      // ),
       appBar: CustomMainAppbar(title: 'Rides'),
       body: SingleChildScrollView(
         child: Padding(
@@ -111,9 +108,7 @@ class BookingScreenState extends State<BookingScreen> {
                     backgroundColor: Colors.blueAccent,
                     padding: EdgeInsets.symmetric(horizontal: 40, vertical: 12),
                   ),
-                  onPressed: () {
-                    // Navigator.push(context, MaterialPageRoute(builder: context => const ))
-                  },
+                  onPressed: handleBooking,
                   child: Text("OK",
                       style: TextStyle(fontSize: 18, color: Colors.white)),
                 ),
@@ -173,6 +168,44 @@ class BookingScreenState extends State<BookingScreen> {
       setState(() {
         selectedDate = picked;
       });
+    }
+  }
+
+  void handleBooking() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+
+    if (tripType == null) {
+      Helpers.showMessage(context, 'Please select a trip type');
+      return;
+    }
+    if (paymentMethod == null) {
+      Helpers.showMessage(context, 'Please select a payment method');
+      return;
+    }
+    if (selectedDate.isBefore(DateTime.now().subtract(Duration(days: 1)))) {
+      Helpers.showMessage(context, 'Please select a valid date');
+      return;
+    }
+
+    String rideId = '1';
+    String userId = userProvider.user!.userId;
+    double amount = 300;
+
+    bool isSuccess = await bookingService.createSingleBooking(
+        rideId, userId, paymentMethod!, tripType!, selectedDate, amount);
+
+    if (isSuccess) {
+      Helpers.showMessage(context, 'Booking successful');
+      Future.delayed(Duration(seconds: 1), () {
+        // Navigator.popUntil(context, ModalRoute.withName('/student/home'));
+        Navigator.pushReplacementNamed(context, '/student/home');
+      });
+    } else {
+      if (paymentMethod == 'Current Balance') {
+        Helpers.showMessage(context, 'Insufficient funds');
+      } else {
+        Helpers.showMessage(context, 'Booking failed! Please try again');
+      }
     }
   }
 }

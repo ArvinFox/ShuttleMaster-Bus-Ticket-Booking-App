@@ -1,0 +1,2 @@
+C:/Users/sas_d/Desktop/dayyjgjg/ShuttleMaster-Bus-Ticket-Booking-App/android/app/.cxx/Debug/xcr2l6i2/armeabi-v7a/CMakeFiles/edit_cache.dir
+C:/Users/sas_d/Desktop/dayyjgjg/ShuttleMaster-Bus-Ticket-Booking-App/android/app/.cxx/Debug/xcr2l6i2/armeabi-v7a/CMakeFiles/rebuild_cache.dir
