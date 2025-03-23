@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class RideModel {
   final String rideId;
   final String driverId;
+  final String busNo;
   final Map<String, String> route;
   final DateTime departureTime;
   final DateTime completedTime;
@@ -17,6 +18,7 @@ class RideModel {
   RideModel({
     required this.rideId, 
     required this.driverId, 
+    required this.busNo, 
     required this.route, 
     required this.departureTime, 
     required this.completedTime, 
@@ -34,6 +36,7 @@ class RideModel {
     return RideModel(
       rideId: doc.id,
       driverId: data['driver_id'] ?? '',
+      busNo: data['bus_no'] ?? '',
       route: {
         "pickup": data['route']['pickup'] ?? '',
         "drop": data['route']['drop'] ?? '',
@@ -52,6 +55,7 @@ class RideModel {
   Map<String, dynamic> toFirestore() {
     return {
       "driver_id": driverId,
+      "bus_no" : busNo,
       "route": {
         "pickup": route['pickup'] ?? '',
         "drop": route['drop'] ?? '',

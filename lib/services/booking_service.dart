@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shuttlemaster/constants/app_config.dart';
 import 'package:shuttlemaster/models/booking_model.dart';
+import 'package:shuttlemaster/models/ride_model.dart';
 
 class BookingService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   //create single booking
-
   Future<bool> createSingleBooking(
       String rideId,
       String userId,
@@ -15,12 +16,10 @@ class BookingService {
       double amount) async {
     try {
       if (paymentMethod == 'Current Balance') {
-        DocumentSnapshot userDoc =
-            await _db.collection('passengers').doc(userId).get();
+        DocumentSnapshot userDoc =  await _db.collection('passengers').doc(userId).get();
         if (!userDoc.exists) throw Exception('User not found');
 
-        double walletBalance =
-            (userDoc['wallet_balance'] as num?)?.toDouble() ?? 0.0;
+        double walletBalance = (userDoc['wallet_balance'] as num?)?.toDouble() ?? 0.0;
         if (walletBalance < amount) return false;
 
         await _db
@@ -28,19 +27,21 @@ class BookingService {
             .doc(userId)
             .update({'wallet_balance': walletBalance - amount});
       }
-      String bookingId =
-          _db.collection('bookings').doc('single').collection('rides').doc().id;
+
+      String bookingId = _db.collection('bookings').doc('single').collection('rides').doc().id;
+      String status = bookingDate.isAfter(DateTime.now()) ? 'Upcoming' : '';
 
       BookingModel booking = SingleRideBooking(
           bookingId: bookingId,
           rideId: rideId,
           userId: userId,
-          status: 'Confirmed',
+          status: status,
           amount: amount,
           bookedAt: DateTime.now(),
           isPaid: false,
           tripType: tripType,
-          bookingDate: bookingDate);
+          bookingDate: bookingDate, 
+          paymentMethod: paymentMethod);
 
       await _db
           .collection('bookings')
@@ -60,7 +61,6 @@ class BookingService {
   }
 
   //create monthly booking
-
   Future<void> createMonthlyBooking(
       String userId, String rideId, double amount) async {
     try {
@@ -85,7 +85,8 @@ class BookingService {
           bookedAt: DateTime.now(),
           isPaid: false,
           startDate: startDate,
-          endDate: endDate);
+          endDate: endDate, 
+          paymentMethod: '');
 
       await _db
           .collection('bookings')
@@ -100,6 +101,75 @@ class BookingService {
       });
     } catch (e) {
       throw Exception('Fail to create monthly booking: $e');
+    }
+  }
+
+  //fetch Booking details
+  Future<List<BookingModel>> fetchRideDetails(String userId) async{
+    try{
+      String bookingsCollection = AppConfig.bookingsCollection;
+
+      QuerySnapshot bookingsDoc = await _db.collection(bookingsCollection).doc("single").collection("rides").where('user_id',isEqualTo: userId).orderBy('booking_date',descending: true).get();
+
+      return bookingsDoc.docs.map((doc) => BookingModel.fromFirestore(doc)).toList();
+
+    }catch (e){
+      throw Exception("Failed to fetch details: $e");
+    }
+  }
+
+  //fetch pickup and drop locations
+  Future<Map<String, String>?> getPickupAndDropForBooking(String bookingId) async{
+    try{
+      String bookingsCollection = AppConfig.bookingsCollection;
+      String ridesCollection = AppConfig.ridesCollection;
+
+      DocumentSnapshot bookingDoc = await _db.collection(bookingsCollection).doc("single").collection("rides").doc(bookingId).get();
+      if (!bookingDoc.exists) return null;
+
+      BookingModel booking = BookingModel.fromFirestore(bookingDoc);
+      String rideId = booking.rideId;
+
+      DocumentSnapshot rideDoc = await _db.collection(ridesCollection).doc(rideId).get();
+      if (!rideDoc.exists) return null;
+
+      RideModel ride = RideModel.fromFirestore(rideDoc);
+      
+      if(ride.route.containsKey('pickup') && ride.route.containsKey('drop')){
+        return {
+          'pickup': ride.route['pickup']!,
+          'drop': ride.route['drop']!,
+        };
+      }
+
+      return null;
+      
+    }catch (e) {
+      print("Error getting route: $e");
+      return null;
+    }
+  }
+
+  //fetch bus no from rides collection
+  Future<Map<String, String>?> fetchBusNo(String rideId,String bookingId) async{
+    try{
+      String bookingsCollection = AppConfig.bookingsCollection;
+      String ridesCollection = AppConfig.ridesCollection;
+
+      DocumentSnapshot bookingDoc = await _db.collection(bookingsCollection).doc("single").collection("rides").doc(bookingId).get();
+      if (!bookingDoc.exists) return null;
+
+      BookingModel booking = BookingModel.fromFirestore(bookingDoc);
+      String rideId = booking.rideId;
+
+      DocumentSnapshot rideDoc = await _db.collection(ridesCollection).doc(rideId).get();
+      if (!rideDoc.exists) return null;
+
+      RideModel ride = RideModel.fromFirestore(rideDoc);
+      return {'bus_no' : ride.busNo};
+
+    }catch (e) {
+      throw Exception("Error getting bus no : $e");
     }
   }
 }

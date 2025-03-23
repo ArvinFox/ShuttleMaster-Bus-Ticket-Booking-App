@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shuttlemaster/components/custom_main_appbar.dart';
+import 'package:shuttlemaster/models/booking_model.dart';
+import 'package:shuttlemaster/providers/booking_provider.dart';
+import 'package:shuttlemaster/providers/user_provider.dart';
+import 'package:shuttlemaster/utils/formatters.dart';
 
 class TravelingHistory extends StatefulWidget {
   final int initialIndex;
@@ -12,7 +17,7 @@ class TravelingHistory extends StatefulWidget {
 
 class _TravelingHistoryState extends State<TravelingHistory> {
   final List<String> buttonLables = [
-    'Ongoing',
+    'Upcoming',
     'Completed',
     'Cancelled',
     'Payable'
@@ -23,6 +28,18 @@ class _TravelingHistoryState extends State<TravelingHistory> {
   void initState() {
     super.initState();
     _activeIndex = widget.initialIndex;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final passengerId =
+          Provider.of<UserProvider>(context, listen: false).user?.userId;
+
+      if (passengerId != null) {
+        Provider.of<BookingProvider>(context, listen: false)
+            .fetchRideHistory(passengerId);
+      } else {
+        print("passenger Id not found");
+      }
+    });
   }
 
   @override
@@ -49,23 +66,147 @@ class _TravelingHistoryState extends State<TravelingHistory> {
               Divider(
                 color: Colors.black,
               ),
-              if (_activeIndex == 0)
-                _buildTravelingCompleteCard(
-                    "Ongoing", "25 Jan 2025", "18:00 PM", "NA 1090", 300)
-              else if (_activeIndex == 1)
-                _buildTravelingCompleteCard(
-                    "Completed", "25 Jan 2025", "18:00 PM", "NA 1090", 300)
-              else if (_activeIndex == 2)
-                _buildTravelingCancelledCard("20 Jan 2025", "07:30 AM",
-                    "Kadawatha", "NSBM", "27 Jan 2025 20:00 PM")
-              else ...[
-                _buildTotalPayable(300.00),
-                Divider(
-                  color: Colors.black,
-                ),
-                _buildTravelingCompleteCard(
-                    "Completed", "25 Jan 2025", "18:00 PM", "NA 1090", 300),
-              ]
+              Consumer<BookingProvider>(
+                builder: (context, bookingsProvider, child) {
+                  if (bookingsProvider.isLoading) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  //upcoming activities
+                  if (_activeIndex == 0) {
+                    final upcomingActivity = bookingsProvider.booking
+                        .where((rideBooking) =>
+                            rideBooking.status == 'Upcoming' && rideBooking is SingleRideBooking)
+                        .toList();
+
+                    if (upcomingActivity.isEmpty) {
+                      return Center(child: Text('No upcoming activities.'));
+                    }
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: upcomingActivity.length,
+                      itemBuilder: (context, index) {
+                        final upcomingBooking = upcomingActivity[index] as SingleRideBooking;
+                        final routeData = Provider.of<BookingProvider>(context).routeData;
+                        final busNo = Provider.of<BookingProvider>(context).busNo;
+
+
+                        return _buildTravelingUpcomingAndCancelledCard(
+                          Formatters.formatDate(upcomingBooking.bookingDate), 
+                          Formatters.formatTime(upcomingBooking.bookingDate),
+                          busNo?[upcomingBooking.rideId] ?? 'N/A',
+                          routeData?['pickup'] ?? 'N/A',
+                          routeData?['drop'] ?? 'N/A',
+                          upcomingBooking.amount,
+                          upcomingBooking.isPaid,
+                          upcomingBooking.paymentMethod,
+                          '');
+                      },
+                    );
+                  }
+
+                  //completed activity
+                  if (_activeIndex == 1) {
+                    final completedActivity = bookingsProvider.booking
+                        .where((rideBooking) =>
+                            rideBooking.status == 'Completed' &&
+                            rideBooking.isPaid == true && rideBooking is SingleRideBooking)
+                        .toList();
+
+                    if (completedActivity.isEmpty) {
+                      return Center(child: Text('No completed activities.'));
+                    }
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: completedActivity.length,
+                      itemBuilder: (context, index) {
+                        final completedBooking = completedActivity[index] as SingleRideBooking;
+                        
+                        return _buildTravelingCompleteCard(
+                            completedBooking.status,
+                            Formatters.formatDate(completedBooking.bookingDate),
+                            Formatters.formatTime(completedBooking.bookingDate),
+                            completedBooking.amount,
+                            completedBooking.paymentMethod);
+                      },
+                    );
+                  }
+
+                  //cancelled activity
+                  if (_activeIndex == 2) {
+                    final cancelledActivity = bookingsProvider.booking
+                        .where((rideBooking) => rideBooking.status == 'Cancelled' && rideBooking is SingleRideBooking)
+                        .toList();
+
+                    final routeData = Provider.of<BookingProvider>(context).routeData;
+                    final busNo = Provider.of<BookingProvider>(context).busNo;
+
+                    if (cancelledActivity.isEmpty) {
+                      return Center(child: Text('No cancelled activities.'));
+                    }
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: cancelledActivity.length,
+                      itemBuilder: (context, index) {
+                        final cancelledBooking = cancelledActivity[index] as SingleRideBooking;
+                        
+                        return _buildTravelingUpcomingAndCancelledCard(
+                          Formatters.formatDate(cancelledBooking.bookingDate),
+                          Formatters.formatTime(cancelledBooking.bookingDate),
+                          busNo?['bus_no'] ?? 'N/A',
+                          routeData?['pickup'] ?? 'N/A',
+                          routeData?['drop'] ?? 'N/A',
+                          cancelledBooking.amount,
+                          cancelledBooking.isPaid,
+                          cancelledBooking.paymentMethod,
+                          '${Formatters.formatDate(cancelledBooking.cancelledDate!)}  ${Formatters.formatTime(cancelledBooking.cancelledDate!)}',
+                        );
+                      },
+                    );
+                  }
+
+                  //payable section
+                  if (_activeIndex == 3) {
+                    final payableActivity = bookingsProvider.booking
+                        .where((rideBooking) =>
+                            rideBooking.status == 'Completed' &&
+                            !rideBooking.isPaid && rideBooking is SingleRideBooking)
+                        .toList();
+
+                    if (payableActivity.isEmpty) {
+                      return Center(child: Text('No payable activities.'));
+                    }
+
+                    return ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: payableActivity.length,
+                      itemBuilder: (context, index) {
+                        final completedPayableBooking = payableActivity[index] as SingleRideBooking;
+                        
+                        return Column(
+                          children: [
+                            _buildTotalPayable(300.00),
+                            Divider(
+                              color: Colors.black,
+                            ),
+                            _buildTravelingCompleteCard(
+                              completedPayableBooking.status,
+                              Formatters.formatDate(completedPayableBooking.bookingDate),
+                              Formatters.formatTime(completedPayableBooking.bookingDate),
+                              completedPayableBooking.amount,
+                              completedPayableBooking.paymentMethod
+                            ,)
+                          ],
+                        );
+                      },
+                    );
+                  }
+                  return Center(child: Text('No activities.'));
+                },
+              ),
             ],
           ),
         ),
@@ -73,7 +214,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
     );
   }
 
-  //Ongoing, complete, cancellet and payable button
+  //Upcoming, complete, cancel and payable button
   Widget _buildActivity(String butLabel, int index) {
     bool isActive = _activeIndex == index;
 
@@ -100,10 +241,10 @@ class _TravelingHistoryState extends State<TravelingHistory> {
     );
   }
 
-  //Ongoing.complete and payable section
-  Widget _buildTravelingCompleteCard(String status, String date,
-      String completedTime, String busNo, double amount) {
+  //Complete and payable section
+  Widget _buildTravelingCompleteCard(String status, String date,String completedTime, double amount, String paymentMethod) {
     bool isCompleted = _activeIndex == 1;
+    final routeData = Provider.of<BookingProvider>(context).routeData;
 
     return Padding(
       padding: const EdgeInsets.all(10),
@@ -131,9 +272,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                           children: [
                             Icon(
                               Icons.done,
-                              color: _activeIndex == 0
-                                  ? Colors.orangeAccent
-                                  : Color.fromARGB(255, 28, 150, 34),
+                              color:Color.fromARGB(255, 28, 150, 34),
                             ),
                             SizedBox(
                               width: 10,
@@ -141,26 +280,23 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                             Text(
                               status,
                               style: TextStyle(
-                                  fontSize: 20,
-                                  color: _activeIndex == 0
-                                      ? Colors.orangeAccent
-                                      : Color.fromARGB(255, 28, 150, 34),
-                                  fontWeight: FontWeight.bold),
+                                fontSize: 20,
+                                color:  Color.fromARGB(255, 28, 150, 34),
+                                fontWeight: FontWeight.bold
+                              ),
                             ),
                           ],
                         ),
                         Text(
                           date,
                           textAlign: TextAlign.right,
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.w800),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                         ),
                       ],
                     ),
                     Text(
                       completedTime,
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                      style:TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                   ],
                 ),
@@ -169,12 +305,11 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Bus No - $busNo",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                      "Bus No - 1080",
+                      style:TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                     SizedBox(height: 8),
-                    _buildLocation("Kadawatha 18:00 PM"),
+                    _buildLocation(routeData?['pickup'] ?? 'N/A', 'Pickup'),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: Container(
@@ -183,7 +318,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                         color: Colors.black,
                       ),
                     ),
-                    _buildLocation("NSBM 17:00 PM"),
+                    _buildLocation(routeData?['drop'] ?? 'N/A', 'Drop'),
                     Divider(color: Colors.black),
                   ],
                 ),
@@ -192,8 +327,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                   children: [
                     Text(
                       "Amount : Rs.${amount.toStringAsFixed(2)}",
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                      style:TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                     ),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
@@ -208,9 +342,8 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                                   : Colors.black),
                         ),
                         Text(
-                          _activeIndex == 3 ? "" : "(By Cash)",
-                          style: TextStyle(
-                              fontSize: 12, fontWeight: FontWeight.w800),
+                          _activeIndex == 3 ? "" : "(By $paymentMethod)",
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
                         ),
                       ],
                     ),
@@ -227,11 +360,10 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                           }
                         },
                         style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                              Colors.blueAccent),
+                          backgroundColor: MaterialStateProperty.all<Color>(Colors.blueAccent),
                         ),
                         child: Text(
-                          _activeIndex == 3 ? "Pay" : "Cancel Booking",
+                         "pay",
                           style: TextStyle(color: Colors.white),
                         ),
                       ),
@@ -245,7 +377,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
     );
   }
 
-  Widget _buildLocation(String location) {
+  Widget _buildLocation(String location, String point) {
     return Padding(
       padding: const EdgeInsets.all(10),
       child: Row(
@@ -255,7 +387,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
             width: 10,
           ),
           Text(
-            location,
+            '$point -  $location',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
           ),
         ],
@@ -263,15 +395,15 @@ class _TravelingHistoryState extends State<TravelingHistory> {
     );
   }
 
-  //cancellation section
-  Widget _buildTravelingCancelledCard(String scheduleDate, String time,
-      String pickup, String drop, String cancellDateTime) {
+  //Upcoming & Cancellation section
+  Widget _buildTravelingUpcomingAndCancelledCard(String scheduleDate,
+      String time, String busNo,String pickup, String drop,  double amount,bool paymentStatus,String paymentMethod,String? cancellDateTime) {
     return Padding(
       padding: const EdgeInsets.all(10),
       child: Card(
         child: Container(
           width: double.infinity,
-          height: 250,
+          height: _activeIndex == 0 ? 330 : 250,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             color: Color(0xFFCACACA).withOpacity(0.20),
@@ -287,14 +419,13 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.cancel),
+                        Icon(_activeIndex == 0 ? Icons.done : Icons.cancel, color: _activeIndex == 0 ? Colors.orangeAccent : Colors.black,),
                         SizedBox(
                           width: 10,
                         ),
                         Text(
-                          "Cancelled Sucessfully",
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
+                          _activeIndex == 0 ? "Upcoming Booking" : "Cancelled Sucessfully",
+                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold,color: _activeIndex == 0 ? Colors.orangeAccent : Colors.black),
                         ),
                       ],
                     ),
@@ -343,6 +474,25 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
+                      "Bus No",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      busNo,
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
                       "Pickup",
                       style: TextStyle(
                         fontSize: 18,
@@ -378,19 +528,79 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                   ],
                 ),
                 Divider(color: Colors.black),
-                Text(
-                  "Cancellation Date & time",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  cancellDateTime,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.normal,
-                  ),
+                _activeIndex == 0 ? 
+                Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Amount : Rs.${amount.toStringAsFixed(2)}",
+                          style:
+                              TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              paymentStatus == false ? "Not Paid" : "Paid",
+                              style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: paymentStatus == false
+                                      ? Colors.red
+                                      : Colors.black),
+                            ),
+                            Text(
+                              paymentStatus == false ? "" : "(By $paymentMethod)",
+                              style: TextStyle(
+                                  fontSize: 12, fontWeight: FontWeight.w800),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.all(10),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              //cancell booking
+                            },
+                            style: ButtonStyle(
+                              backgroundColor: MaterialStateProperty.all<Color>(
+                                  Colors.blueAccent),
+                            ),
+                            child: Text(
+                              "Cancel Booking",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        )  
+                      ],
+                    )
+                  ],
+                ) :
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Cancellation Date & time",
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      cancellDateTime!,
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.normal,
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),

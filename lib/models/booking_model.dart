@@ -7,16 +7,20 @@ class BookingModel {
   final String status;
   final double amount;
   final DateTime bookedAt;
+  DateTime? cancelledDate;
   final bool isPaid;
+  final String paymentMethod;
 
   BookingModel({
-    required this.bookingId,
-    required this.rideId,
-    required this.userId,
+    required this.bookingId, 
+    required this.rideId, 
+    required this.userId, 
     required this.status,
-    required this.amount,
-    required this.bookedAt,
+    required this.amount, 
+    required this.bookedAt, 
+    this.cancelledDate,
     this.isPaid = false,
+    required this.paymentMethod
   });
 
   factory BookingModel.fromFirestore(DocumentSnapshot doc) {
@@ -36,7 +40,9 @@ class BookingModel {
       "status": status,
       "amount": amount,
       "booked_at": Timestamp.fromDate(bookedAt),
+      "cancelled_date": cancelledDate != null ? Timestamp.fromDate(cancelledDate!) : null,
       "is_paid": isPaid,
+      "payment_method": paymentMethod,
     };
   }
 }
@@ -45,16 +51,18 @@ class SingleRideBooking extends BookingModel {
   final String tripType;
   final DateTime bookingDate;
 
-  SingleRideBooking(
-      {required super.bookingId,
-      required super.rideId,
-      required super.userId,
-      required super.status,
-      required super.amount,
-      required super.bookedAt,
-      super.isPaid,
-      required this.tripType,
-      required this.bookingDate});
+  SingleRideBooking({
+    required super.bookingId,
+    required super.rideId,
+    required super.userId,
+    required super.status,
+    required super.amount,
+    required super.bookedAt,
+    super.isPaid,
+    required this.tripType,
+    required this.bookingDate, 
+    required super.paymentMethod
+  });
 
   factory SingleRideBooking.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -63,12 +71,13 @@ class SingleRideBooking extends BookingModel {
       bookingId: doc.id,
       rideId: data['ride_id'] ?? '',
       userId: data['user_id'] ?? '',
-      status: data['status'] ?? 'confirmed',
+      status: data['status'] ?? '',
       amount: (data['amount'] ?? 0.0).toDouble(),
       bookedAt: (data['booked_at'] as Timestamp).toDate(),
       isPaid: data['is_paid'] ?? false,
       tripType: data['trip_type'] ?? 'One-Way',
       bookingDate: (data['booking_date'] as Timestamp).toDate(),
+      paymentMethod: data['payment_method'] ?? '',
     );
   }
 
@@ -92,7 +101,9 @@ class MonthlyBooking extends BookingModel {
       required super.bookedAt,
       super.isPaid,
       required this.startDate,
-      required this.endDate});
+      required this.endDate,
+      required super.paymentMethod
+  });
 
   factory MonthlyBooking.fromFirestore(DocumentSnapshot doc) {
     Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -107,6 +118,7 @@ class MonthlyBooking extends BookingModel {
       isPaid: data['is_paid'] ?? false,
       startDate: (data['start_date'] as Timestamp).toDate(),
       endDate: (data['end_date'] as Timestamp).toDate(),
+      paymentMethod: data['payment_method'] ?? '',
     );
   }
 
