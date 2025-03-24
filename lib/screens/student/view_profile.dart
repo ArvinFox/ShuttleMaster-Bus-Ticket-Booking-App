@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:shuttlemaster/screens/auth/enter_id_screen.dart';
+import 'package:provider/provider.dart';
+import 'package:shuttlemaster/components/custom_main_appbar.dart';
+import 'package:shuttlemaster/models/user_model.dart';
+import 'package:shuttlemaster/providers/user_provider.dart';
 
 class ViewProfileStudent extends StatefulWidget {
   const ViewProfileStudent({super.key});
@@ -10,86 +12,104 @@ class ViewProfileStudent extends StatefulWidget {
 }
 
 class _ViewProfileState extends State<ViewProfileStudent> {
+
+  void _showLogoutConfirmation(BuildContext context){
+    showDialog(
+      context: context, 
+      builder: (BuildContext context){
+        return AlertDialog(
+          title: Text("Confirm Logout"),
+          content: SizedBox(
+            width: 300,
+            child: Text("Are you sure you want to logout ?")),
+          actions: [
+            TextButton(
+              onPressed: (){
+                Navigator.pop(context);
+              }, 
+              child: Text("Cancel")
+            ),
+            TextButton(
+              onPressed: (){
+                Navigator.pop(context);
+                Navigator.pushNamedAndRemoveUntil(context, '/select-role',(Route<dynamic> route) => false);
+              }, 
+              child: Text("Logout")
+            )
+          ],
+        );
+      }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.blueAccent,
-        title: Text('Profile',
-            style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold)),
-        leading: CupertinoNavigationBarBackButton(
-          color: Colors.white,
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        leadingWidth: 40,
-      ),
+      backgroundColor: Colors.white,
+      appBar: CustomMainAppbar(title: "Profile"),
       body: Padding(
         padding: EdgeInsets.symmetric(vertical: 35, horizontal: 60),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 60,
-              child: Icon(Icons.person, size: 60, color: Colors.white),
-            ),
-            SizedBox(height: 30),
+        child: Consumer<UserProvider>(
+          builder: (context, userProvider, child) {
+            if (userProvider.isLoading) {
+              return Center(child: CircularProgressIndicator());
+            }
 
-            // Profile Details
-            ProfileItem(icon: Icons.person, label: "Full Name"),
-            ProfileItem(icon: Icons.location_on, label: "Address"),
-            ProfileItem(icon: Icons.phone, label: "Mobile Number"),
-            ProfileItem(icon: Icons.email, label: "Email Address"),
-
-            SizedBox(height: 50),
-
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const EnterIdScreen()),
-                );
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                padding: EdgeInsets.symmetric(
-                    horizontal: 100, vertical: 15), // Adjust width
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+            final user = userProvider.user as PassengerModel;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircleAvatar(
+                  radius: 60,
+                  child: Icon(Icons.person, size: 60, color: Colors.white),
                 ),
-              ),
-              child: Text("Logout",
-                  style: TextStyle(fontSize: 18, color: Colors.white)),
-            ),
-          ],
+                SizedBox(height: 30),
+
+                // Profile Details
+                _profileItem(Icons.person, user.name),
+                _profileItem(Icons.phone, user.phone),
+                _profileItem(Icons.email, user.email),
+
+                SizedBox(height: 100),
+
+                ElevatedButton(
+                  onPressed: () {
+                    //logout function
+                    _showLogoutConfirmation(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    padding:EdgeInsets.symmetric(horizontal: 100, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    "Logout",
+                    style: TextStyle(fontSize: 18, color: Colors.white)
+                  ),
+                ),
+              ],
+            );
+          },
         ),
       ),
     );
   }
-}
 
-// Reusable Profile Item Widget
-class ProfileItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const ProfileItem({super.key, required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _profileItem(IconData icon, String label) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 18),
       child: Row(
         children: [
           Icon(icon, color: Colors.blueAccent, size: 36),
           SizedBox(width: 25),
-          Text(label,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600)
+            ),
+          ),
         ],
       ),
     );
