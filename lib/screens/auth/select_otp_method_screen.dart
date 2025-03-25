@@ -13,7 +13,7 @@ class SelectOtpMethodScreen extends StatefulWidget {
   const SelectOtpMethodScreen({super.key});
 
   @override
-  _SelectOtpMethodScreenState createState() => _SelectOtpMethodScreenState();
+  State<SelectOtpMethodScreen> createState() => _SelectOtpMethodScreenState();
 }
 
 class _SelectOtpMethodScreenState extends State<SelectOtpMethodScreen> {

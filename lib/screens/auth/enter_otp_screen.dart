@@ -15,7 +15,7 @@ class EnterOtpScreen extends StatefulWidget {
   const EnterOtpScreen({super.key});
 
   @override
-  _EnterOtpScreenState createState() => _EnterOtpScreenState();
+  State<EnterOtpScreen> createState() => _EnterOtpScreenState();
 }
 
 class _EnterOtpScreenState extends State<EnterOtpScreen> {

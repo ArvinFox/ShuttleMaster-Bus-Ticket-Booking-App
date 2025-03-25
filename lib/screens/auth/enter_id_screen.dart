@@ -11,7 +11,7 @@ class EnterIdScreen extends StatefulWidget {
   const EnterIdScreen({super.key});
 
   @override
-  _EnterIdScreenState createState() => _EnterIdScreenState();
+  State<EnterIdScreen> createState() => _EnterIdScreenState();
 }
 
 class _EnterIdScreenState extends State<EnterIdScreen> {

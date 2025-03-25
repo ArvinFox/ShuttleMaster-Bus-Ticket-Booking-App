@@ -10,7 +10,7 @@ class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
 
   @override
-  _DriverHomeScreenState createState() => _DriverHomeScreenState();
+  State<DriverHomeScreen> createState() => _DriverHomeScreenState();
 }
 
 class _DriverHomeScreenState extends State<DriverHomeScreen> {

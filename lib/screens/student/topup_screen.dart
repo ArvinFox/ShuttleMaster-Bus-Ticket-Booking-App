@@ -8,7 +8,7 @@ class TopUpScreen extends StatefulWidget {
   const TopUpScreen({super.key});
 
   @override
-  _TopUpScreenState createState() => _TopUpScreenState();
+  State<TopUpScreen> createState() => _TopUpScreenState();
 }
 
 class _TopUpScreenState extends State<TopUpScreen> {

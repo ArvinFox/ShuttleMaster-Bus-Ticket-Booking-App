@@ -96,7 +96,7 @@ class ProfileScreenState extends State<ProfileScreenStuent> {
                 child: Column(
                   children: [
                     Text('All rights reserved. Developed by Group 10'),
-                    Text('(Batch 12 UOP - NGSM)'),
+                    Text('(Batch 12 UOP - NSBM)'),
                     Text('App version - 1.0.0'),
                   ],
                 ),

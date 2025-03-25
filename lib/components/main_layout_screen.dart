@@ -3,6 +3,7 @@ import 'package:shuttlemaster/constants/app_config.dart';
 import 'package:shuttlemaster/screens/driver/driver_home_screen.dart';
 import 'package:shuttlemaster/screens/driver/driver_notification_screen.dart';
 import 'package:shuttlemaster/screens/driver/profile_screen.dart';
+import 'package:shuttlemaster/screens/driver/trip_info_screen.dart';
 import 'package:shuttlemaster/screens/student/home_screen.dart';
 import 'package:shuttlemaster/screens/student/profile_screen.dart';
 import 'package:shuttlemaster/screens/student/rides_screen.dart';
@@ -13,7 +14,7 @@ class MainLayoutScreen extends StatefulWidget {
   const MainLayoutScreen({super.key, required this.userRole});
 
   @override
-  _MainLayoutScreenState createState() => _MainLayoutScreenState();
+  State<MainLayoutScreen> createState() => _MainLayoutScreenState();
 }
 
 class _MainLayoutScreenState extends State<MainLayoutScreen> {
@@ -43,7 +44,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     } else if (widget.userRole == AppConfig.driverRole) {
       _screens = [
         DriverHomeScreen(),
-        DriverHomeScreen(), // Add Trip Info Screen here
+        TripInfoScreen(),
         DriverNotificationScreen(),
         ProfileScreenDriver(),
       ];
