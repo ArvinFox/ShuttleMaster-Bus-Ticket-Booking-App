@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shuttlemaster/components/custom_auth_appbar.dart';
+import 'package:shuttlemaster/components/custom_auth_id_input_formatter.dart';
 import 'package:shuttlemaster/components/custom_button.dart';
 import 'package:shuttlemaster/components/custom_greeting.dart';
 import 'package:shuttlemaster/constants/app_config.dart';
@@ -62,13 +64,22 @@ class _EnterIdScreenState extends State<EnterIdScreen> {
                   ),
                   SizedBox(height: 20),
                     
-                  TextField(
+                  TextFormField(
                     controller: _idController,
+                    keyboardType: role == AppConfig.passengerRole
+                      ? TextInputType.number
+                      : TextInputType.text,
+                    maxLength: role == AppConfig.passengerRole ? 8 : 12,
+                    inputFormatters: [
+                      LengthLimitingTextInputFormatter(role == AppConfig.passengerRole ? 8 : 12),
+                      CustomAuthIdInputFormatter(role),
+                    ],
                     decoration: InputDecoration(
                       labelText: role == AppConfig.passengerRole
                         ? "Student ID/Lecturer ID"
                         : "National Identity Card (NIC)",
                       border: OutlineInputBorder(),
+                      counterText: "",
                     ),
                   ),
                   SizedBox(height: 30),
@@ -76,10 +87,29 @@ class _EnterIdScreenState extends State<EnterIdScreen> {
                   CustomButton(
                     label: "Continue",
                     isLoading: userProvider.isLoading,
-                    onPressed: () async {
-                      String id = _idController.text;
-                    
+                    onPressed: userProvider.isLoading ? null : () async {
+                      String id = _idController.text.trim();
+
                       if (id.isNotEmpty) {
+                        // Validate ID
+                        bool isValid = false;
+                        if (role == AppConfig.passengerRole) {
+                          isValid = RegExp(r'^\d{5}$|^\d{8}$').hasMatch(id);
+                        } else {
+                          isValid = RegExp(r'^\d{9}[VXvx]$|^\d{12}$').hasMatch(id);
+                        }
+
+                        if (!isValid) {
+                          Helpers.showMessage(
+                            context, 
+                            role == AppConfig.passengerRole
+                              ? "Invalid Student/Lecturer ID"
+                              : "Invalid NIC"
+                          );
+                          return;
+                        }
+
+                        // Process if valid
                         await userProvider.fetchUser(id, role);
 
                         if (userProvider.user == null) {

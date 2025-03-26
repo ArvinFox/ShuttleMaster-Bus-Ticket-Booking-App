@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shuttlemaster/components/custom_auth_appbar.dart';
 import 'package:shuttlemaster/components/custom_button.dart';
@@ -196,7 +197,7 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
                   ),
                   SizedBox(height: 20),
           
-                  _buildOtpInputField(otpMethod),
+                  _buildOtpInputField(),
                   SizedBox(height: 25),
 
                   CustomButton(
@@ -213,16 +214,22 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
     );
   }
 
-  Column _buildOtpInputField(String otpMethod) {
+  Column _buildOtpInputField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         TextField(
           controller: _otpController,
           keyboardType: TextInputType.number,
+          maxLength: 6,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(6),
+          ],
           decoration: InputDecoration(
             labelText: "OTP",
             border: OutlineInputBorder(),
+            counterText: "",
           ),
         ),
         TextButton(
