@@ -14,4 +14,17 @@ class RideService{
       throw Exception("Failed to fetch details: $e");
     }
   }
+
+  // Get ride by ID
+  Future<RideModel?> getRideById(String rideId) async {
+    try {
+      DocumentSnapshot rideDoc = await _db.collection(AppConfig.ridesCollection).doc(rideId).get();
+      if (!rideDoc.exists) return null;
+
+      return RideModel.fromFirestore(rideDoc);
+
+    } catch (e) {
+      throw Exception("Failed to fetch ride: $e");
+    }
+  }
 }

@@ -172,4 +172,11 @@ class BookingService {
       throw Exception("Error getting bus no : $e");
     }
   }
+
+  // Fetch the bookings of a particular ride
+  Future<List<BookingModel>> getRideBookings(String rideId) async {
+    QuerySnapshot bookingSnapshot = await _db.collection(AppConfig.bookingsCollection).where('ride_id', isEqualTo: rideId).get();
+
+    return bookingSnapshot.docs.map((doc) => BookingModel.fromFirestore(doc)).toList();
+  }
 }

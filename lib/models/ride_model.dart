@@ -5,11 +5,14 @@ class RideModel {
   final String driverId;
   final String busNo;
   final Map<String, String> route;
+  final List<String> stops;
   final DateTime departureTime;
   final DateTime completedTime;
+  final int duration; // in minutes
   final int totalSeats;
   final int availableSeats;
-  final List<String> passengers;
+  final int reservedSeats;
+  final List<Map<String, dynamic>> passengers;
   final String status;
   final double totalIncome;
   final double distance;
@@ -20,10 +23,13 @@ class RideModel {
     required this.driverId, 
     required this.busNo, 
     required this.route, 
+    required this.stops,
     required this.departureTime, 
     required this.completedTime, 
+    required this.duration,
     required this.totalSeats, 
     required this.availableSeats, 
+    required this.reservedSeats,
     required this.passengers, 
     required this.status,
     required this.totalIncome,
@@ -41,11 +47,16 @@ class RideModel {
         "pickup": data['route']['pickup'] ?? '',
         "drop": data['route']['drop'] ?? '',
       },
+      stops: List<String>.from(data['stops'] ?? []),
       departureTime: (data['departure_time'] as Timestamp).toDate(),
-      completedTime: (data['completed_time'] as Timestamp).toDate(),
+      completedTime: data['completed_time'] != null
+        ? (data['completed_time'] as Timestamp).toDate()
+        : DateTime.now(),
+      duration: data['duration'] ?? 60,
       totalSeats: data['total_seats'] ?? 0,
       availableSeats: data['available_seats'] ?? 0,
-      passengers: List<String>.from(data['passengers'] ?? []),
+      reservedSeats: data['reserved_seats'] ?? 0,
+      passengers: List<Map<String, dynamic>>.from(data['passengers']?.map((item) => item as Map<String, dynamic>) ?? []),
       status: data['status'] ?? 'scheduled',
       totalIncome: (data['total_income'] ?? 0).toDouble(),
       distance: (data['distance'] ?? 0).toDouble(),
@@ -60,11 +71,14 @@ class RideModel {
         "pickup": route['pickup'] ?? '',
         "drop": route['drop'] ?? '',
       },
+      "stops": stops,
       "departure_time": Timestamp.fromDate(departureTime),
       "completed_time": Timestamp.fromDate(departureTime),
+      "duration": duration,
       "total_seats": totalSeats,
       "available_seats": availableSeats,
-      "passengers": passengers,
+      "reserved_seats": reservedSeats,
+      "passengers": passengers.map((item) => item).toList(),
       "status": status,
       "total_income": totalIncome,
       "distance": distance,
