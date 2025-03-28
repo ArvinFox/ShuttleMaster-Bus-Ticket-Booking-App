@@ -7,11 +7,11 @@ class RideModel {
   final Map<String, String> route;
   final List<String> stops;
   final DateTime departureTime;
-  final DateTime completedTime;
+  DateTime? completedTime;
   final int duration; // in minutes
   final int totalSeats;
-  final int availableSeats;
-  final int reservedSeats;
+  int availableSeats;
+  int reservedSeats;
   final List<Map<String, dynamic>> passengers;
   final String status;
   final double totalIncome;
@@ -25,7 +25,7 @@ class RideModel {
     required this.route, 
     required this.stops,
     required this.departureTime, 
-    required this.completedTime, 
+    this.completedTime, 
     required this.duration,
     required this.totalSeats, 
     required this.availableSeats, 

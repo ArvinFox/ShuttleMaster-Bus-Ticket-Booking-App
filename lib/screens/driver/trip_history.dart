@@ -48,8 +48,8 @@ class _TripHistoryState extends State<TripHistory> {
               itemBuilder: (context, index) {
                 final ride = ridesProvider.rides[index];
                 return _buildTripHistoryCard(
-                  Formatters.formatDate(ride.completedTime),
-                  Formatters.formatTime(ride.completedTime),
+                  Formatters.formatDate(ride.completedTime!),
+                  Formatters.formatTime(ride.completedTime!),
                   ride.distance.toInt(),
                   ride.totalIncome,
                   ride.route['pickup'] ?? 'Pickup',

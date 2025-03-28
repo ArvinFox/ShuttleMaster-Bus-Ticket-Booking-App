@@ -7,8 +7,7 @@ class RideService{
 
   Future<List<RideModel>> fetchDriverRideDetails(String driverId) async{
     try{
-      String collectionName = AppConfig.ridesCollection;
-      QuerySnapshot ridesDoc = await _db.collection(collectionName).where('driver_id',isEqualTo: driverId).where('status',isEqualTo: 'Completed').orderBy('departure_time',descending: true).get();
+      QuerySnapshot ridesDoc = await _db.collection(AppConfig.ridesCollection).where('driver_id',isEqualTo: driverId).where('status',isEqualTo: 'Completed').orderBy('departure_time',descending: true).get();
       return ridesDoc.docs.map((doc) => RideModel.fromFirestore(doc)).toList();
     }catch (e){
       throw Exception("Failed to fetch details: $e");
@@ -49,6 +48,29 @@ class RideService{
 
     } catch (e) {
       throw Exception("Failed to update attendance status: $e");
+    }
+  }
+
+  //update ride collection when cancelling a booking
+  Future<void> updateRidesOnCancellation(String rideId, String passengerId) async {
+    try {
+      var rideDoc = await _db.collection(AppConfig.ridesCollection).doc(rideId).get();
+      if (!rideDoc.exists)  throw Exception("Ride not found");
+
+      RideModel ride = RideModel.fromFirestore(rideDoc);
+
+      ride.availableSeats += 1;
+      ride.reservedSeats -= 1;
+
+      ride.passengers.removeWhere((passenger) => passenger['passenger_id'] == passengerId);
+
+      await _db.collection(AppConfig.ridesCollection).doc(rideId).update({
+        'available_seats': ride.availableSeats,
+        'reserved_seats': ride.reservedSeats,
+        'passengers': ride.passengers,
+      });
+    } catch (e) {
+      throw Exception("Failed to update ride: $e");
     }
   }
 }

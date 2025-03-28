@@ -61,7 +61,8 @@ class SingleRideBooking extends BookingModel {
     super.isPaid,
     required this.tripType,
     required this.bookingDate, 
-    required super.paymentMethod
+    required super.paymentMethod,
+    required super.cancelledDate
   });
 
   factory SingleRideBooking.fromFirestore(DocumentSnapshot doc) {
@@ -78,6 +79,7 @@ class SingleRideBooking extends BookingModel {
       tripType: data['trip_type'] ?? 'One-Way',
       bookingDate: (data['booking_date'] as Timestamp).toDate(),
       paymentMethod: data['payment_method'] ?? '',
+      cancelledDate: data['cancelled_date'] != null ? (data['cancelled_date'] as Timestamp).toDate() : null
     );
   }
 

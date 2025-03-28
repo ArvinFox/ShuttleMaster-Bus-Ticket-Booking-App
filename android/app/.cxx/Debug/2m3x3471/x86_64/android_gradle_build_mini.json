@@ -4,14 +4,14 @@
   ],
   "cleanCommandsComponents": [
     [
-      "C:\\Users\\Laptop Outlet\\AppData\\Local\\Android\\sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+      "C:\\Users\\Udani Kodithuwakku\\AppData\\Local\\Android\\sdk\\cmake\\3.22.1\\bin\\ninja.exe",
       "-C",
       "D:\\NSBM\\Y2-S2\\ShuttleMaster-Bus-Ticket-Booking-App\\android\\app\\.cxx\\Debug\\2m3x3471\\x86_64",
       "clean"
     ]
   ],
   "buildTargetsCommandComponents": [
-    "C:\\Users\\Laptop Outlet\\AppData\\Local\\Android\\sdk\\cmake\\3.22.1\\bin\\ninja.exe",
+    "C:\\Users\\Udani Kodithuwakku\\AppData\\Local\\Android\\sdk\\cmake\\3.22.1\\bin\\ninja.exe",
     "-C",
     "D:\\NSBM\\Y2-S2\\ShuttleMaster-Bus-Ticket-Booking-App\\android\\app\\.cxx\\Debug\\2m3x3471\\x86_64",
     "{LIST_OF_TARGETS_TO_BUILD}"
