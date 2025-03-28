@@ -5,6 +5,7 @@ import 'package:shuttlemaster/screens/driver/driver_notification_screen.dart';
 import 'package:shuttlemaster/screens/driver/profile_screen.dart';
 import 'package:shuttlemaster/screens/driver/trip_info_screen.dart';
 import 'package:shuttlemaster/screens/student/home_screen.dart';
+import 'package:shuttlemaster/screens/student/notification_screen.dart';
 import 'package:shuttlemaster/screens/student/profile_screen.dart';
 import 'package:shuttlemaster/screens/student/rides_screen.dart';
 
@@ -31,7 +32,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
       _screens = [
         HomeScreen(),
         RidesScreen(),
-        ProfileScreenStuent(),  // Add Notification Screen here
+        StudentNotificationScreen(),
         ProfileScreenStuent(),
       ];
 

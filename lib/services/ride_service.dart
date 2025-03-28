@@ -27,4 +27,28 @@ class RideService{
       throw Exception("Failed to fetch ride: $e");
     }
   }
+
+  // Update passenger attendance status
+  Future<void> updateAttendanceStatus(String rideId, String passengerId, String status) async {
+    try {
+      DocumentReference rideRef = _db.collection(AppConfig.ridesCollection).doc(rideId);
+
+      DocumentSnapshot rideDoc = await rideRef.get();
+      if (!rideDoc.exists) throw Exception("Ride not found");
+
+      List<Map<String, dynamic>> passengers = List<Map<String, dynamic>>.from(rideDoc['passengers']);
+
+      for (var passenger in passengers) {
+        if (passenger['passenger_id'] == passengerId) {
+          passenger['attendance_status'] = status;
+          break;
+        }
+      }
+
+      await rideRef.update({'passengers': passengers});
+
+    } catch (e) {
+      throw Exception("Failed to update attendance status: $e");
+    }
+  }
 }

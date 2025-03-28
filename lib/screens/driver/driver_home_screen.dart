@@ -1,10 +1,16 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shuttlemaster/components/custom_header.dart';
 import 'package:shuttlemaster/constants/app_config.dart';
+import 'package:shuttlemaster/models/notification_model.dart';
+import 'package:shuttlemaster/models/ride_model.dart';
 import 'package:shuttlemaster/models/user_model.dart';
+import 'package:shuttlemaster/providers/notification_provider.dart';
 import 'package:shuttlemaster/providers/user_provider.dart';
+import 'package:shuttlemaster/services/ride_service.dart';
+import 'package:shuttlemaster/utils/helpers.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   const DriverHomeScreen({super.key});
@@ -14,6 +20,8 @@ class DriverHomeScreen extends StatefulWidget {
 }
 
 class _DriverHomeScreenState extends State<DriverHomeScreen> {
+  final RideService _rideService = RideService();
+
   @override
   void initState() {
     super.initState();
@@ -125,6 +133,65 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     );
   }
 
+  void _sendAlert(String message) async {
+    final notificationProvider = Provider.of<NotificationProvider>(context, listen: false);
+
+    try {
+      String rideId = "5";
+      RideModel? ride = await _rideService.getRideById(rideId);
+
+      if (ride == null) {
+        Helpers.showMessage(context, "Unable to load ride details.");
+      } else {
+        for (Map<String, dynamic> passengerInfo in ride.passengers) {
+          String notificationId = FirebaseFirestore.instance.collection(AppConfig.notificationsCollection).doc().id;
+
+          NotificationModel notification = createNotificationFromMessage(message, passengerInfo['passenger_id'], notificationId, rideId);
+
+          await notificationProvider.createNotification(notification); 
+        }
+        Helpers.showMessage(context, "Alert sent successfully!");
+      }
+
+    } catch (e) {
+      Helpers.showMessage(context, "Failed to send alert: $e");
+    }
+  }
+
+  NotificationModel createNotificationFromMessage(String driverMessage, String userId, String notificationId, String rideId) {
+    String type = "";
+    String title = "";
+    String message = "";
+
+    if (driverMessage == "The bus will be leaving soon...") {
+      type = "reminder";
+      title = "Departure Reminder";
+      message = "The bus will be leaving soon. Please be ready at the designated stop.";
+    } else if (driverMessage == "The bus has arrived at your destination!") {
+      type = "reminder";
+      title = "Arrival Notice";
+      message = "The bus has arrived at your destination. Please disembark safely.";
+    } else if (driverMessage == "Are you coming today?") {
+      type = "confirm_attendance";
+      title = "Attendance Check";
+      message = "Are you coming today? Please confirm your attendance";
+    } else {
+      type = "reminder";
+      title = "Reminder";
+      message = driverMessage;
+    }
+
+    return NotificationModel(
+      notificationId: notificationId,
+      userId: userId,
+      rideId: rideId,
+      type: type,
+      title: title,
+      message: message,
+      date: DateTime.now(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -191,19 +258,21 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             ),
           ),
           // SizedBox(width: 10,)
-          Container(
-            height: 80,
-            width: 80,
-            margin: EdgeInsets.all(5),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(50),
-              color: Colors.blue,
-
+          GestureDetector(
+            onTap: () => _sendAlert(alert),
+            child: Container(
+              height: 80,
+              width: 80,
+              margin: EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(50),
+                color: Colors.blue,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Image.asset("assets/icons/send.png",),
+              ),     
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Image.asset("assets/icons/send.png",),
-            ),     
           ),
         ],
       ),
