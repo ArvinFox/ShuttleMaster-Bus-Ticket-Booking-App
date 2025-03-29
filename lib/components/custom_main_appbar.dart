@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 
 class CustomMainAppbar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
+  final bool showLeading;
 
-  const CustomMainAppbar({super.key, required this.title});
+  const CustomMainAppbar({super.key, required this.title,required this.showLeading });
 
   @override
   Widget build(BuildContext context) {
@@ -18,11 +19,11 @@ class CustomMainAppbar extends StatelessWidget implements PreferredSizeWidget {
           fontWeight: FontWeight.bold,
         ),
       ),
-      leading: IconButton(
-        icon: Icon(CupertinoIcons.back, color: Colors.white, size: 28),
-        onPressed: () => Navigator.pop(context),
-      ),
-      leadingWidth: 40,
+      leading: showLeading ? 
+        IconButton(
+          icon: Icon(CupertinoIcons.back, color: Colors.white, size: 28),
+          onPressed: () => Navigator.pop(context),
+        ) : null,
     );
   }
 

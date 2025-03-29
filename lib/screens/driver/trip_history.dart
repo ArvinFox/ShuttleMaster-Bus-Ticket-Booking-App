@@ -31,7 +31,7 @@ class _TripHistoryState extends State<TripHistory> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomMainAppbar(title: 'Trip History'),
+      appBar: CustomMainAppbar(title: 'Trip History', showLeading: true),
       body: Consumer<RidesProvider>(
         builder: (context, ridesProvider, child) {
           if (ridesProvider.rides.isEmpty) {
@@ -44,18 +44,26 @@ class _TripHistoryState extends State<TripHistory> {
             }
 
             return ListView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
               itemCount: ridesProvider.rides.length,
               itemBuilder: (context, index) {
                 final ride = ridesProvider.rides[index];
-                return _buildTripHistoryCard(
-                  Formatters.formatDate(ride.completedTime!),
-                  Formatters.formatTime(ride.completedTime!),
-                  ride.distance.toInt(),
-                  ride.totalIncome,
-                  ride.route['pickup'] ?? 'Pickup',
-                  ride.route['drop'] ?? 'Drop',
-                  Formatters.formatTime(ride.departureTime),
-                );
+
+                if(ride.status == 'Completed'){
+                  return _buildTripCompletedCard(
+                    Formatters.formatDate(ride.departureTime), 
+                    Formatters.formatTime(ride.departureTime), 
+                    ride.route['pickup'] ?? 'Pickup',
+                    ride.route['drop'] ?? 'Drop',
+                    ride.totalIncome, 
+                    (ride.completedTime != null
+                      ? '${Formatters.formatDate(ride.completedTime!)}  ${Formatters.formatTime(ride.completedTime!)}'
+                      : 'N/A'),
+                    ride.reservedSeats
+                  );
+                }
+                return null;
               },
             );
           }
@@ -65,13 +73,13 @@ class _TripHistoryState extends State<TripHistory> {
   }
 }
 
-Widget _buildTripHistoryCard(String date, String completedTime,int travelDistance, double income, String pickup, String drop, String scheduleTime) {
+Widget _buildTripCompletedCard(String departureDate,String time,String pickup,String drop,double income, String? completedDateTime,int seats) {
   return Padding(
     padding: const EdgeInsets.all(10),
     child: Card(
       child: Container(
         width: double.infinity,
-        height: 300,
+        height: 330,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
           color: Color(0xFFCACACA).withOpacity(0.20),
@@ -79,97 +87,145 @@ Widget _buildTripHistoryCard(String date, String completedTime,int travelDistanc
         child: Padding(
           padding: const EdgeInsets.all(10),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
+            crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.done,
-                            color: const Color.fromARGB(255, 28, 150, 34),
-                          ),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Text(
-                            "Completed",
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: const Color.fromARGB(255, 28, 150, 34),
-                              fontWeight: FontWeight.bold
-                            ),
-                          ),
-                        ],
+                      Icon(
+                        Icons.done,
+                        color: Color.fromARGB(255, 28, 150, 34)
                       ),
+                      SizedBox(width: 10),
                       Text(
-                        date,
-                        textAlign: TextAlign.right,
-                        style: TextStyle(fontSize: 16,fontWeight: FontWeight.w800),
+                        "Completed",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color.fromARGB(255, 28, 150, 34)
+                        ),
                       ),
                     ],
-                  ),
-                  Text(
-                    completedTime,
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                   ),
                 ],
               ),
               SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Route",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '$pickup - $drop',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Departure Date",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    departureDate,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Departure Time",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    time,
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Reserved Seats",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    seats.toString(),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Total Income",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    "Rs.${income.toStringAsFixed(2)}",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                ],
+              ),
+              Divider(color: Colors.black),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Travel Distance - $travelDistance Km",
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                    "Completed Date & time",
+                    style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 8),
-                  // ignore: prefer_interpolation_to_compose_strings
-                  _buildLocation(pickup + '  ' + scheduleTime),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Container(
-                      width: 2,
-                      height: 40,
-                      color: Colors.black,
-                    ),
+                  Text(
+                    completedDateTime!,
+                    style: TextStyle(fontSize: 15,fontWeight: FontWeight.normal),
                   ),
-                  // ignore: prefer_interpolation_to_compose_strings
-                  _buildLocation(drop + '  ' + completedTime),
-                  Divider(color: Colors.black),
                 ],
-              ),
-              Text(
-                "Income : Rs.${income.toStringAsFixed(2)}",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
               ),
             ],
           ),
         ),
       ),
-    ),
-  );
-}
-
-Widget _buildLocation(String location) {
-  return Padding(
-    padding: const EdgeInsets.all(10),
-    child: Row(
-      children: [
-        Icon(Icons.circle_outlined),
-        SizedBox(
-          width: 10,
-        ),
-        Text(
-          location,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-        ),
-      ],
     ),
   );
 }

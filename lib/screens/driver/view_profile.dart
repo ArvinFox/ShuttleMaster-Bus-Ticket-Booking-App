@@ -46,7 +46,7 @@ class _ViewProfileState extends State<ViewProfileDriver> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomMainAppbar(title: "Profile"),
+      appBar: CustomMainAppbar(title: "Profile", showLeading: true,),
       body: Padding(
         padding: EdgeInsets.symmetric(vertical: 35, horizontal: 60),
         child: Consumer<UserProvider>(

@@ -80,7 +80,7 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomMainAppbar(title: 'Rides'),
+      appBar: CustomMainAppbar(title: 'Rides', showLeading: true),
       body: SafeArea(
         child: widget.busType == "Private Bus"
             ? _buildRideSearch()

@@ -101,11 +101,55 @@ class _TravelingHistoryState extends State<TravelingHistory> {
     );
   }
 
+  void _showPaymentConfirmation(BuildContext context, String bookingId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Payment Confirmation"),
+          content: SizedBox(
+            width: 300,
+            child: Text("Are you sure you want to confirm this payment ?")),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: Text("No")),
+            TextButton(
+              onPressed: () async {
+                try{
+                  await _bookingService.updatePaymentState(bookingId);
+
+                  BookingModel? booking = await _bookingService.getBookingById(bookingId);
+                  String rideId = booking!.rideId;
+                  String passengerId = booking.userId;
+
+                  await _rideService.updateRidesPayments(rideId, passengerId,bookingId);
+
+                  Helpers.showMessage(context, 'Your payment has been sucessfully completed');
+                  Future.delayed(Duration(seconds: 1), () {
+                    Navigator.pop(context);
+                    Navigator.pushReplacementNamed(context, '/student/home');
+                  });
+
+                }catch (e){
+                  Helpers.debugPrintWithBorder('Error: $e');
+                }
+              },
+              child: Text("Yes")
+            ),
+          ],
+        );
+      }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomMainAppbar(title: 'Traveling History'),
+      appBar: CustomMainAppbar(title: 'Traveling History', showLeading: true),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(5, 10, 5, 10),
@@ -135,7 +179,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                         case 0: return rideBooking.status == 'Upcoming';
                         case 1: return rideBooking.status == 'Completed';
                         case 2: return rideBooking.status == 'Cancelled';
-                        case 3: return rideBooking.isPaid == false;
+                        case 3: return rideBooking.isPaid == false && rideBooking.status != 'Cancelled';
                         default: return false;
                       }
                     })
@@ -197,7 +241,8 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                                     ride.route['pickup'] ?? 'N/A',
                                     Formatters.formatTime(ride.departureTime),
                                     ride.route['drop'] ?? 'N/A',
-                                    booking.isPaid
+                                    booking.isPaid,
+                                    booking.bookingId
                                   );
                                 } else {
                                   return _buildTravelingUpcomingAndCancelledCard(
@@ -242,7 +287,8 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                               ride.route['pickup'] ?? 'N/A',
                               Formatters.formatTime(ride.departureTime),
                               ride.route['drop'] ?? 'N/A',
-                              booking.isPaid
+                              booking.isPaid,
+                              booking.bookingId
                             );
                           } else {
                             return _buildTravelingUpcomingAndCancelledCard(
@@ -303,7 +349,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
   }
 
   //Complete and payable section
-  Widget _buildTravelingCompleteCard(String status, String date,String completedTime, double amount, String paymentMethod, String busNo,String pickup, String pickupTime, String drop,bool paymentStatus) {
+  Widget _buildTravelingCompleteCard(String status, String date,String completedTime, double amount, String paymentMethod, String busNo,String pickup, String pickupTime, String drop,bool paymentStatus,String bookingId) {
     bool isCompleted = _activeIndex == 1;
 
     return Padding(
@@ -449,6 +495,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                         onPressed: () {
                           if (_activeIndex == 3) {
                             //payment action
+                            _showPaymentConfirmation(context, bookingId);
                           }
                         },
                         style: ButtonStyle(

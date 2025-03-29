@@ -9,7 +9,7 @@ class AboutUsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomMainAppbar(title: "About Us"),
+      appBar: CustomMainAppbar(title: "About Us", showLeading: true,),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.all(16),

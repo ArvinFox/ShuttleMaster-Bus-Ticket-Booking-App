@@ -14,7 +14,7 @@ class RideModel {
   int reservedSeats;
   final List<Map<String, dynamic>> passengers;
   final String status;
-  final double totalIncome;
+  double totalIncome;
   final double distance;
 
 

@@ -21,7 +21,7 @@ class RidesScreenState extends State<RidesScreenMonthly> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomMainAppbar(title: 'Rides'),
+      appBar: CustomMainAppbar(title: 'Rides', showLeading: true),
       body: SingleChildScrollView(
         child: Padding(
           padding: EdgeInsets.all(16.0),

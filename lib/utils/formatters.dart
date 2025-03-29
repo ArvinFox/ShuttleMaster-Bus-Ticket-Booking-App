@@ -30,4 +30,8 @@ class Formatters {
     final DateFormat timeFormat = DateFormat('hh:mm a');
     return timeFormat.format(time);
   }
+
+  static String formatRoute(int maxLength, String route){
+    return (route.length <= maxLength) ? route : '${route.substring(0, maxLength)}....';
+  }
 }

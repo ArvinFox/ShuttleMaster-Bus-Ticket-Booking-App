@@ -33,7 +33,7 @@ class _DriverNotificationScreenState extends State<DriverNotificationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomMainAppbar(title: "Notifications"),
+      appBar: CustomMainAppbar(title: "Notifications", showLeading: false),
       body: SingleChildScrollView(
         child: Consumer<NotificationProvider>(
           builder: (context, notificationProvider, child) {

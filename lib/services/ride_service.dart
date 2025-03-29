@@ -47,7 +47,7 @@ class RideService{
       await rideRef.update({'passengers': passengers});
 
     } catch (e) {
-      throw Exception("Failed to update attendance status: $e");
+      throw Exception("Failed to update attendance status: $e");
     }
   }
 
@@ -69,6 +69,39 @@ class RideService{
         'reserved_seats': ride.reservedSeats,
         'passengers': ride.passengers,
       });
+    } catch (e) {
+      throw Exception("Failed to update ride: $e");
+    }
+  }
+
+  //update passenger payment status
+  Future<void> updateRidesPayments(String rideId, String passengerId, String bookingId) async {
+    try {
+      var rideDoc = await _db.collection(AppConfig.ridesCollection).doc(rideId).get();
+      if (!rideDoc.exists) throw Exception("Ride not found");
+
+      RideModel ride = RideModel.fromFirestore(rideDoc);
+
+      var bookingDoc = await _db.collection(AppConfig.bookingsCollection).doc("single").collection("rides").where('ride_id', isEqualTo: rideId).where('user_id', isEqualTo:passengerId).get();
+
+      if (bookingDoc.docs.isEmpty) throw Exception("Booking not found");
+
+      var paymentAmount = bookingDoc.docs.first.data()['amount'];
+
+      for (var passenger in ride.passengers) {
+        if (passenger['passenger_id'] == passengerId) {
+          passenger['is_paid'] = true;
+          break; 
+        }
+      }
+
+      ride.totalIncome += paymentAmount;
+
+      await _db.collection(AppConfig.ridesCollection).doc(rideId).update({
+        'passengers': ride.passengers,
+        'total_income': ride.totalIncome,
+      });
+
     } catch (e) {
       throw Exception("Failed to update ride: $e");
     }

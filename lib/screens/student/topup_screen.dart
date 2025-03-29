@@ -56,7 +56,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomMainAppbar(title: 'Top-up Account'),
+      appBar: CustomMainAppbar(title: 'Top-up Account', showLeading: true),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(20.0),

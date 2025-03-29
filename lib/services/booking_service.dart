@@ -142,7 +142,16 @@ class BookingService {
     try{
       await _db.collection(AppConfig.bookingsCollection).doc("single").collection("rides").doc(bookingId).update({'status': 'Cancelled', 'cancelled_date': DateTime.now()});
     }catch (e){
-      throw Exception("Error getting bus no : $e");
+      throw Exception("Failed to fetch booking : $e");
+    }
+  }
+
+  //update payment status after payed using total payable screen
+  Future<void> updatePaymentState(String bookingId) async{
+    try{
+      await _db.collection(AppConfig.bookingsCollection).doc("single").collection("rides").doc(bookingId).update({'is_paid': true, 'payment_method': 'Card'});
+    }catch (e){
+      throw Exception("Failed to fetch booking : $e");
     }
   }
 }

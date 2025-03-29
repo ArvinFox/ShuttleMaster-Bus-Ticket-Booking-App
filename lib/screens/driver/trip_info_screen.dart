@@ -111,7 +111,7 @@ class _TripInfoScreenState extends State<TripInfoScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: CustomMainAppbar(title: "Trip Information"),
+      appBar: CustomMainAppbar(title: "Trip Information", showLeading: false),
       body: SafeArea(
         child: SingleChildScrollView(
           child: _isLoading

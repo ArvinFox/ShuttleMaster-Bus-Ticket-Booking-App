@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shuttlemaster/components/custom_main_appbar.dart';
 
 class RidesScreen extends StatelessWidget {
   const RidesScreen({super.key});
@@ -7,15 +8,7 @@ class RidesScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: Text(
-          'Rides',
-          style: TextStyle(fontWeight: FontWeight.w500),
-        ),
-        backgroundColor: Colors.blueAccent,
-        foregroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-      ),
+      appBar: CustomMainAppbar(title: 'Rides', showLeading: false),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
