@@ -3,6 +3,8 @@ import 'package:shuttlemaster/components/custom_main_appbar.dart';
 import 'package:flutter/services.dart';
 import 'package:shuttlemaster/utils/card_formatters.dart';
 import 'package:shuttlemaster/utils/card_validators.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class TopUpScreen extends StatefulWidget {
   const TopUpScreen({super.key});
@@ -13,6 +15,42 @@ class TopUpScreen extends StatefulWidget {
 
 class _TopUpScreenState extends State<TopUpScreen> {
   final _formKey = GlobalKey<FormState>();
+  double currentBalance = 0.00; // Initial balance
+  double enteredAmount = 0.00; // Amount entered by the user
+
+  // Method to call the backend and get the client secret
+  Future<void> topUpAccount(double amount) async {
+    try {
+      final response = await http.post(
+        Uri.parse('http://10.0.2.2:3000/create-payment-intent'),
+        headers: {'Content-Type': 'application/json'},
+        body:
+            json.encode({'amount': (amount * 100).toInt()}), // Amount in cents
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        String clientSecret = data['clientSecret'];
+
+        // Update the balance after top-up
+        setState(() {
+          currentBalance += amount;
+        });
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Top-up successful! New balance: Rs. $currentBalance'),
+        ));
+      } else {
+        throw Exception('Failed to create payment intent');
+      }
+    } catch (e) {
+      print('Error: $e');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Failed to process top-up. Please try again.'),
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,13 +96,41 @@ class _TopUpScreenState extends State<TopUpScreen> {
                     ),
                     SizedBox(height: 10),
                     Text(
-                      'Rs. 300.00',
+                      'Rs. $currentBalance',
                       style:
                           TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                       textAlign: TextAlign.center,
                     ),
                   ],
                 ),
+              ),
+              SizedBox(height: 30),
+              Text(
+                'Enter Amount to Top-up',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              SizedBox(height: 10),
+              TextFormField(
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Enter Amount',
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    enteredAmount = double.tryParse(value) ?? 0.00;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter a valid amount';
+                  }
+                  if (double.tryParse(value) == null ||
+                      double.parse(value) <= 0) {
+                    return 'Please enter a valid positive amount';
+                  }
+                  return null;
+                },
               ),
               SizedBox(height: 30),
               Text(
@@ -104,7 +170,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
                       TextFormField(
                         decoration: InputDecoration(
                           border: OutlineInputBorder(),
-                          hintText: '1234 5678 9012 3456',
+                          hintText: 'Card Number',
                         ),
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
@@ -168,7 +234,15 @@ class _TopUpScreenState extends State<TopUpScreen> {
                 child: ElevatedButton(
                   onPressed: () {
                     if (_formKey.currentState?.validate() ?? false) {
-                      // Process the top-up
+                      if (enteredAmount > 0) {
+                        topUpAccount(
+                            enteredAmount); // Call the backend to process the payment
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text('Please enter a valid amount')),
+                        );
+                      }
                     } else {
                       // Show validation errors
                     }
