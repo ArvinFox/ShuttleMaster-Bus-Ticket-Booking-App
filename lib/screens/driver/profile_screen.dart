@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shuttlemaster/providers/user_provider.dart';
 
 class ProfileScreenDriver extends StatefulWidget {
   const ProfileScreenDriver({super.key});
@@ -51,14 +53,31 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
                 ),
               ],
             ),
-            const SizedBox(
-                height: 50), // Space to push content down after avatar
-            const Center(
-                child: Text('@UserName', style: TextStyle(fontSize: 20))),
-            const Center(
-                child: Text('07xxxxxxxx',
-                    style: TextStyle(fontSize: 16, color: Colors.grey))),
-            const SizedBox(height: 20),
+            Consumer<UserProvider>(
+              builder: (context, userProvider, child) {
+                if (userProvider.isLoading) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                final user = userProvider.user;
+                return Column(
+                  children: [
+                    const SizedBox(
+                        height: 50), // Space to push content down after avatar
+                    Center(
+                        child:
+                            Text(user!.name, style: TextStyle(fontSize: 20))),
+                    Center(
+                        child: Text(user.phone,
+                            style:
+                                TextStyle(fontSize: 16, color: Colors.grey))),
+                    const SizedBox(height: 20),
+                  ],
+                );
+              },
+            ),
 
             // Dark Mode Switch
             Padding(
@@ -82,7 +101,8 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
             const SizedBox(height: 10),
 
             // List Items
-            _buildListItem(Icons.person, 'View Profile', "/driver/view-profile"),
+            _buildListItem(
+                Icons.person, 'View Profile', "/driver/view-profile"),
             _buildListItem(Icons.history, 'Trip History', "/trip-history"),
             _buildListItem(Icons.support_agent, 'Help & Support', ""),
             _buildListItem(Icons.info_outline, 'About Us', "/about-us"),

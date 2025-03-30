@@ -4,8 +4,13 @@ import 'package:shuttlemaster/app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  runApp(const MyApp()); 
+  try {
+    print("----12345677777777777777777777777------------------------------");
+    await Firebase.initializeApp();
+  } catch (e) {
+    print("error:$e");
+  }
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
