@@ -3,6 +3,7 @@ import 'package:shuttlemaster/components/custom_main_appbar.dart';
 import 'package:shuttlemaster/components/rides_info_card.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:shuttlemaster/models/ride_model.dart';
 
 class RidesScreenSelection extends StatefulWidget {
   final String busType;
@@ -14,18 +15,6 @@ class RidesScreenSelection extends StatefulWidget {
 }
 
 class _RidesScreenSelectionState extends State<RidesScreenSelection> {
-  final List<String> _suggestions = [
-    "Colombo Fort",
-    "Pettah",
-    "Malabe",
-    "Kottawa",
-    "Maharagama",
-    "Homagama",
-    "Nugegoda",
-    "Borella",
-    "Rajagiriya",
-  ];
-
   String? _pickupLocation;
   String? _dropLocation;
 
@@ -34,27 +23,39 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
 
   List<Map<String, String>> timetable = [];
 
+  bool isLoading = true;
+  List<RideModel> privateRides = [];
+  List<RideModel> filteredRides = [];
+
+  List<String> _locationSuggestions = [];
+
   @override
   void initState() {
     super.initState();
     if (widget.busType != "Private Bus") {
       fetchTimetable();
+    } else {
+      fetchPrivateRides();
     }
   }
 
   void fetchTimetable() {
-  String collectionPath;
+    setState(() {
+      isLoading = true;
+    });
 
-  if (widget.busType == "NSBM Bus") {
-    collectionPath = 'bus_timetables/nsbm_bus/timetable';
-  } else {
-    collectionPath = 'bus_timetables/public_transport/timetable';
-  }
+    String collectionPath;
 
-  FirebaseFirestore.instance
-      .collection(collectionPath)
-      .get()
-      .then((querySnapshot) {
+    if (widget.busType == "NSBM Bus") {
+      collectionPath = 'bus_timetables/nsbm_bus/timetable';
+    } else {
+      collectionPath = 'bus_timetables/public_transport/timetable';
+    }
+
+    FirebaseFirestore.instance
+        .collection(collectionPath)
+        .get()
+        .then((querySnapshot) {
       List<Map<String, String>> fetchedTimetable = [];
       for (var doc in querySnapshot.docs) {
         DateTime time = (doc["time"] as Timestamp).toDate();
@@ -69,12 +70,61 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
       }
       setState(() {
         timetable = fetchedTimetable;
+        isLoading = false;
       });
     }).catchError((error) {
-
+      print("Error fetching timetable: $error");
+      setState(() {
+        isLoading = false;
+      });
     });
   }
 
+  void fetchPrivateRides() async {
+    try {
+      QuerySnapshot snapshot =
+          await FirebaseFirestore.instance.collection('rides').get();
+
+      List<RideModel> rides = snapshot.docs.map((doc) {
+        return RideModel.fromFirestore(doc);
+      }).toList();
+
+      // Extract all unique pickup and drop locations (except NSBM)
+      Set<String> locationSet = {};
+      for (var ride in rides) {
+        final pickup = ride.route['pickup'] ?? '';
+        final drop = ride.route['drop'] ?? '';
+        if (pickup.isNotEmpty && pickup != "NSBM Green University") {
+          locationSet.add(pickup);
+        }
+        if (drop.isNotEmpty && drop != "NSBM Green University") {
+          locationSet.add(drop);
+        }
+      }
+
+      rides.shuffle(); // Show random rides on load
+
+      setState(() {
+        privateRides = rides;
+        filteredRides = rides;
+        _locationSuggestions = locationSet.toList();
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Error fetching private rides: $e");
+    }
+  }
+
+  void _searchRides() {
+    if (_pickupLocation == null || _dropLocation == null) return;
+
+    setState(() {
+      filteredRides = privateRides.where((ride) {
+        return ride.route['pickup'] == _pickupLocation &&
+            ride.route['drop'] == _dropLocation;
+      }).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -90,109 +140,92 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
   }
 
   Widget _buildRideSearch() {
-    return SingleChildScrollView(
-      padding: EdgeInsets.only(top: 15),
-      child: Center(
-        child: Padding(
-          padding: EdgeInsets.all(15),
-          child: Column(
-            children: [
-              _buildSearchFields(),
-              SizedBox(height: 20),
-              RideInfoCard(
-                busNo: "NA 0090",
-                startPoint: "Kadawatha",
-                endPoint: "NSBM",
-                time: "8:00 AM",
-                price: "Rs. 300.00",
-                seatAvailability: "Yes",
-                btnShown: true,
-              ),
-              RideInfoCard(
-                busNo: "NA 0090",
-                startPoint: "Kadawatha",
-                endPoint: "NSBM",
-                time: "8:00 AM",
-                price: "Rs. 300.00",
-                seatAvailability: "No",
-                btnShown: false,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTimetableUI() {
-    return Padding(
-      padding: EdgeInsets.all(15),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          double screenWidth = constraints.maxWidth;
-
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minWidth: screenWidth,
-              ),
-              child: DataTable(
-                columnSpacing: 20,
-                headingRowColor: MaterialStateColor.resolveWith(
-                    (states) => Colors.blueAccent), // Header row color
-                headingTextStyle: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+    return isLoading
+        ? Center(child: CircularProgressIndicator())
+        : SingleChildScrollView(
+            padding: EdgeInsets.only(top: 15),
+            child: Center(
+              child: Padding(
+                padding: EdgeInsets.all(15),
+                child: Column(
+                  children: [
+                    _buildSearchFields(),
+                    SizedBox(height: 20),
+                    filteredRides.isEmpty
+                        ? Text("No rides found.")
+                        : Column(
+                            children: filteredRides.map((ride) {
+                              return RideInfoCard(
+                                busNo: ride.busNo,
+                                startPoint: ride.route['pickup']!,
+                                endPoint: ride.route['drop']!,
+                                time: DateFormat('h:mm a')
+                                    .format(ride.departureTime),
+                                price: "Rs. ", // Include the price in database
+                                seatAvailability:
+                                    ride.availableSeats > 0 ? "Yes" : "No",
+                                btnShown: ride.availableSeats > 0,
+                              );
+                            }).toList(),
+                          )
+                  ],
                 ),
-                dataRowHeight: 60,
-                columns: const [
-                  DataColumn(
-                      label: Text(
-                    'Bus No',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  )),
-                  DataColumn(
-                      label: Text(
-                    'Start Point',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  )),
-                  DataColumn(
-                      label: Text(
-                    'End Point',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  )),
-                  DataColumn(
-                      label: Text(
-                    'Time',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                  )),
-                ],
-                rows: timetable.map((ride) {
-                  return DataRow(
-                    color: MaterialStateProperty.all(
-                      timetable.indexOf(ride) % 2 == 0
-                          ? Colors.grey[200]!
-                          : Colors.white,
-                    ),
-                    cells: [
-                      DataCell(
-                          Text(ride["busNo"]!, style: TextStyle(fontSize: 14))),
-                      DataCell(
-                          Text(ride["start"]!, style: TextStyle(fontSize: 14))),
-                      DataCell(
-                          Text(ride["end"]!, style: TextStyle(fontSize: 14))),
-                      DataCell(
-                          Text(ride["time"]!, style: TextStyle(fontSize: 14))),
-                    ],
-                  );
-                }).toList(),
               ),
             ),
           );
-        },
-      ),
-    );
+  }
+
+  Widget _buildTimetableUI() {
+    return isLoading
+        ? Center(child: CircularProgressIndicator())
+        : Padding(
+            padding: EdgeInsets.all(15),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                double screenWidth = constraints.maxWidth;
+
+                return SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minWidth: screenWidth,
+                    ),
+                    child: DataTable(
+                      columnSpacing: 20,
+                      headingRowColor: MaterialStateColor.resolveWith(
+                          (states) => Colors.blueAccent),
+                      headingTextStyle: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      dataRowHeight: 60,
+                      columns: const [
+                        DataColumn(label: Text('Bus No')),
+                        DataColumn(label: Text('Start Point')),
+                        DataColumn(label: Text('End Point')),
+                        DataColumn(label: Text('Time')),
+                      ],
+                      rows: timetable.map((ride) {
+                        return DataRow(
+                          color: MaterialStateProperty.all(
+                            timetable.indexOf(ride) % 2 == 0
+                                ? Colors.grey[200]!
+                                : Colors.white,
+                          ),
+                          cells: [
+                            DataCell(Text(ride["busNo"]!)),
+                            DataCell(Text(ride["start"]!)),
+                            DataCell(Text(ride["end"]!)),
+                            DataCell(Text(ride["time"]!)),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
   }
 
   Widget _buildSearchFields() {
@@ -210,9 +243,7 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
           _buildAutoCompleteTextField("Drop Location", false),
           SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () {
-              print("Pickup: $_pickupLocation, Drop: $_dropLocation");
-            },
+            onPressed: _searchRides,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
               foregroundColor: Colors.white,
@@ -245,7 +276,7 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
             if (textEditingValue.text.isEmpty) {
               return const Iterable<String>.empty();
             }
-            return _suggestions.where((String option) {
+            return _locationSuggestions.where((String option) {
               return option
                   .toLowerCase()
                   .contains(textEditingValue.text.toLowerCase());
@@ -256,32 +287,42 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
               if (isPickup) {
                 _pickupLocation = selection;
                 _pickupController.text = selection;
+
                 _dropLocation = "NSBM Green University";
-                _dropController.text = "NSBM Green University";
+                _dropController.text = _dropLocation!;
               } else {
                 _dropLocation = selection;
                 _dropController.text = selection;
+
                 _pickupLocation = "NSBM Green University";
-                _pickupController.text = "NSBM Green University";
+                _pickupController.text = _pickupLocation!;
               }
             });
           },
           fieldViewBuilder:
-              (context, textController, focusNode, onEditingComplete) {
-            textController.text = controller.text;
+              (context, textEditingController, focusNode, onFieldSubmitted) {
+            textEditingController.text = controller.text;
+
             return TextField(
-              controller: textController,
+              controller: controller,
               focusNode: focusNode,
-              onEditingComplete: onEditingComplete,
               decoration: InputDecoration(
                 hintText: hintText,
-                filled: true,
-                fillColor: Colors.grey[200],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.blueAccent, width: 1),
                 ),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 15, vertical: 12),
               ),
+              onChanged: (value) {
+                setState(() {
+                  if (isPickup) {
+                    _pickupLocation = value;
+                  } else {
+                    _dropLocation = value;
+                  }
+                });
+              },
             );
           },
         ),
