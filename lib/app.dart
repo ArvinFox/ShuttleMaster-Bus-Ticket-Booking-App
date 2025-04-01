@@ -26,7 +26,7 @@ class ShuttleMaster extends StatelessWidget {
       child: MaterialApp(
         title: "ShuttleMaster",
         debugShowCheckedModeBanner: false,
-        home: TopUpScreen(),
+        home: WelcomeScreen(),
         // initialRoute: "/intro",
         routes: AppRoutes.routes,
       ),
