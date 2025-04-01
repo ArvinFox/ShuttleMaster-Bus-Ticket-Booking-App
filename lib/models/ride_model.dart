@@ -5,7 +5,6 @@ class RideModel {
   final String driverId;
   final String busNo;
   final Map<String, String> route;
-  final List<String> stops;
   final DateTime departureTime;
   DateTime? completedTime;
   final int duration; // in minutes
@@ -13,27 +12,29 @@ class RideModel {
   int availableSeats;
   int reservedSeats;
   final List<Map<String, dynamic>> passengers;
+  final List<Map<String, dynamic>> stops;
   final String status;
   double totalIncome;
   final double distance;
-
+  final bool incoming;
 
   RideModel({
-    required this.rideId, 
-    required this.driverId, 
-    required this.busNo, 
-    required this.route, 
+    required this.rideId,
+    required this.driverId,
+    required this.busNo,
+    required this.route,
     required this.stops,
-    required this.departureTime, 
-    this.completedTime, 
+    required this.departureTime,
+    this.completedTime,
     required this.duration,
-    required this.totalSeats, 
-    required this.availableSeats, 
+    required this.totalSeats,
+    required this.availableSeats,
     required this.reservedSeats,
-    required this.passengers, 
+    required this.passengers,
     required this.status,
     required this.totalIncome,
     required this.distance,
+    required this.incoming,
   });
 
   factory RideModel.fromFirestore(DocumentSnapshot doc) {
@@ -47,33 +48,37 @@ class RideModel {
         "pickup": data['route']['pickup'] ?? '',
         "drop": data['route']['drop'] ?? '',
       },
-      stops: List<String>.from(data['stops'] ?? []),
+      stops: List<Map<String, dynamic>>.from(
+          data['stops']?.map((stop) => stop as Map<String, dynamic>) ?? []),
       departureTime: (data['departure_time'] as Timestamp).toDate(),
       completedTime: data['completed_time'] != null
-        ? (data['completed_time'] as Timestamp).toDate()
-        : DateTime.now(),
+          ? (data['completed_time'] as Timestamp).toDate()
+          : DateTime.now(),
       duration: data['duration'] ?? 60,
       totalSeats: data['total_seats'] ?? 0,
       availableSeats: data['available_seats'] ?? 0,
       reservedSeats: data['reserved_seats'] ?? 0,
-      passengers: List<Map<String, dynamic>>.from(data['passengers']?.map((item) => item as Map<String, dynamic>) ?? []),
+      passengers: List<Map<String, dynamic>>.from(
+          data['passengers']?.map((item) => item as Map<String, dynamic>) ??
+              []),
       status: data['status'] ?? 'scheduled',
       totalIncome: (data['total_income'] ?? 0).toDouble(),
       distance: (data['distance'] ?? 0).toDouble(),
+      incoming: data['incoming'] ?? true,
     );
   }
 
   Map<String, dynamic> toFirestore() {
     return {
       "driver_id": driverId,
-      "bus_no" : busNo,
+      "bus_no": busNo,
       "route": {
         "pickup": route['pickup'] ?? '',
         "drop": route['drop'] ?? '',
       },
-      "stops": stops,
+      "stops": stops.map((stop) => stop).toList(),
       "departure_time": Timestamp.fromDate(departureTime),
-      "completed_time": Timestamp.fromDate(departureTime),
+      "completed_time": Timestamp.fromDate(departureTime), //completedTime
       "duration": duration,
       "total_seats": totalSeats,
       "available_seats": availableSeats,
@@ -82,6 +87,7 @@ class RideModel {
       "status": status,
       "total_income": totalIncome,
       "distance": distance,
+      "incoming": incoming,
     };
   }
 }

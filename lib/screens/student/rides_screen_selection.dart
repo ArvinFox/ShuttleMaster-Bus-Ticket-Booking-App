@@ -30,6 +30,19 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
   List<String> _locationSuggestions = [];
 
   @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: CustomMainAppbar(title: 'Rides', showLeading: true),
+      body: SafeArea(
+        child: widget.busType == "Private Bus"
+            ? _buildRideSearch()
+            : _buildTimetableUI(),
+      ),
+    );
+  }
+
+  @override
   void initState() {
     super.initState();
     if (widget.busType != "Private Bus") {
@@ -89,20 +102,20 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
         return RideModel.fromFirestore(doc);
       }).toList();
 
-      // Extract all unique pickup and drop locations (except NSBM)
       Set<String> locationSet = {};
       for (var ride in rides) {
-        final pickup = ride.route['pickup'] ?? '';
         final drop = ride.route['drop'] ?? '';
-        if (pickup.isNotEmpty && pickup != "NSBM Green University") {
-          locationSet.add(pickup);
-        }
-        if (drop.isNotEmpty && drop != "NSBM Green University") {
-          locationSet.add(drop);
+        locationSet.add(drop);
+
+        for (var stop in ride.stops) {
+          final pickup = stop['stop'] ?? '';
+          if (pickup.isNotEmpty && pickup != "NSBM Green University") {
+            locationSet.add(pickup);
+          }
         }
       }
 
-      rides.shuffle(); // Show random rides on load
+      rides.shuffle();
 
       setState(() {
         privateRides = rides;
@@ -120,23 +133,18 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
 
     setState(() {
       filteredRides = privateRides.where((ride) {
-        return ride.route['pickup'] == _pickupLocation &&
-            ride.route['drop'] == _dropLocation;
+        if (ride.incoming) {
+          bool hasPickup =
+              ride.stops.any((stop) => stop['stop'] == _pickupLocation);
+          bool hasDrop = ride.route['drop'] == _dropLocation;
+          return hasPickup && hasDrop;
+        } else {
+          bool hasDrop =
+              ride.stops.any((stop) => stop['stop'] == _dropLocation);
+          return _pickupLocation == "NSBM Green University" && hasDrop;
+        }
       }).toList();
     });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: CustomMainAppbar(title: 'Rides', showLeading: true),
-      body: SafeArea(
-        child: widget.busType == "Private Bus"
-            ? _buildRideSearch()
-            : _buildTimetableUI(),
-      ),
-    );
   }
 
   Widget _buildRideSearch() {
@@ -154,20 +162,31 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
                     filteredRides.isEmpty
                         ? Text("No rides found.")
                         : Column(
-                            children: filteredRides.map((ride) {
-                              return RideInfoCard(
-                                busNo: ride.busNo,
-                                startPoint: ride.route['pickup']!,
-                                endPoint: ride.route['drop']!,
-                                time: DateFormat('h:mm a')
-                                    .format(ride.departureTime),
-                                price: "Rs. ", // Include the price in database
-                                seatAvailability:
-                                    ride.availableSeats > 0 ? "Yes" : "No",
-                                btnShown: ride.availableSeats > 0,
-                              );
+                            children: filteredRides.expand((ride) {
+                              return ride.stops.map((stop) {
+                                if (_pickupLocation != null &&
+                                    stop['stop'] != _pickupLocation) {
+                                  return SizedBox();
+                                }
+                                return RideInfoCard(
+                                  busNo: ride.busNo,
+                                  startPoint: ride.incoming
+                                      ? stop['stop']
+                                      : "NSBM Green University",
+                                  endPoint: ride.incoming
+                                      ? ride.route['drop']
+                                      : stop['stop'],
+                                  time: DateFormat('h:mm a')
+                                      .format(ride.departureTime),
+                                  price:
+                                      "Rs. ${(stop['price']).toStringAsFixed(2)}",
+                                  seatAvailability:
+                                      ride.availableSeats > 0 ? "Yes" : "No",
+                                  btnShown: ride.availableSeats > 0,
+                                );
+                              }).toList();
                             }).toList(),
-                          )
+                          ),
                   ],
                 ),
               ),
@@ -187,9 +206,7 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
                 return SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minWidth: screenWidth,
-                    ),
+                    constraints: BoxConstraints(minWidth: screenWidth),
                     child: DataTable(
                       columnSpacing: 20,
                       headingRowColor: MaterialStateColor.resolveWith(

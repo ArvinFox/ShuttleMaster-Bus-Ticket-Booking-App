@@ -55,7 +55,7 @@ class _TripInfoScreenState extends State<TripInfoScreen> {
         routeName = "${ride?.route['pickup']} - ${ride?.route['drop']}";
         startLocation = "${ride?.route['pickup']}";
         endLocation = "${ride?.route['drop']}";
-        stops = ride!.stops;
+        //stops = ride!.stops;
         departureTime = DateFormat('hh:mm a').format(ride!.departureTime);
         estimatedArrivalTime = DateFormat('hh:mm a').format(ride!.departureTime.add(Duration(minutes: ride!.duration)));
         reservedSeats = ride!.reservedSeats;
