@@ -4,8 +4,10 @@ import 'package:shuttlemaster/providers/booking_provider.dart';
 import 'package:shuttlemaster/providers/notification_provider.dart';
 import 'package:shuttlemaster/providers/rides_provider.dart';
 import 'package:shuttlemaster/providers/user_provider.dart';
+import 'package:shuttlemaster/providers/balance_provider.dart';
 import 'package:shuttlemaster/routes/app_routes.dart';
 import 'package:shuttlemaster/screens/static/welcome_screen.dart';
+import 'package:shuttlemaster/screens/student/topup_screen.dart';
 // import 'package:shuttlemaster/screens/static/splash_screen.dart';
 
 class ShuttleMaster extends StatelessWidget {
@@ -19,11 +21,12 @@ class ShuttleMaster extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RidesProvider()),
         ChangeNotifierProvider(create: (_) => BookingProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => BalanceProvider()),
       ],
       child: MaterialApp(
         title: "ShuttleMaster",
         debugShowCheckedModeBanner: false,
-        home: WelcomeScreen(),
+        home: TopUpScreen(),
         // initialRoute: "/intro",
         routes: AppRoutes.routes,
       ),
