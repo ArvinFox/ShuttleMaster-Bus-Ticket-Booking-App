@@ -27,6 +27,8 @@ class _EnterIdScreenState extends State<EnterIdScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     // Retrieve user role
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     final String role = args?['role'] ?? AppConfig.passengerRole;
@@ -34,7 +36,7 @@ class _EnterIdScreenState extends State<EnterIdScreen> {
     final userProvider = Provider.of<UserProvider>(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomAuthAppbar(),
       body: SafeArea(
         child: Center(
@@ -60,7 +62,7 @@ class _EnterIdScreenState extends State<EnterIdScreen> {
                       ? "Please enter your Student ID or Lecturer ID here."
                       : "Please enter your National Identity Card Number here.",
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 14),
+                    style: theme.textTheme.bodyMedium,
                   ),
                   SizedBox(height: 20),
                     

@@ -30,7 +30,9 @@ class NotificationStyles {
     }
   }  
 
-  static Color getNotificationItemColor(NotificationType notificationType) {
+  static Color getNotificationItemColor(BuildContext context, NotificationType notificationType) {
+    final theme = Theme.of(context);
+
     switch (notificationType) {
       case NotificationType.success:
         return Colors.green;
@@ -39,7 +41,7 @@ class NotificationStyles {
       case NotificationType.alert:
         return Colors.redAccent;
       case NotificationType.general:
-        return Colors.black;
+        return theme.textTheme.bodyLarge?.color ?? Colors.black;
     }
   }
 }

@@ -37,10 +37,11 @@ class _SelectOtpMethodScreenState extends State<SelectOtpMethodScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final userProvider = Provider.of<UserProvider>(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomAuthAppbar(),
       body: SafeArea(
         child: Center(
@@ -62,7 +63,7 @@ class _SelectOtpMethodScreenState extends State<SelectOtpMethodScreen> {
         
                 Text(
                   "You can get an OTP via your registered mobile number or email address.",
-                  style: TextStyle(fontSize: 15),
+                  style: theme.textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
                 SizedBox(height: 15),
@@ -72,7 +73,8 @@ class _SelectOtpMethodScreenState extends State<SelectOtpMethodScreen> {
                 else ...[
                   RadioListTile<String>(
                     title: Text(
-                      "Mobile number: ${Formatters.getMaskedPhoneNumber(userProvider.user?.phone)}"
+                      "Mobile number: ${Formatters.getMaskedPhoneNumber(userProvider.user?.phone)}",
+                      style: theme.textTheme.bodyMedium,
                     ),
                     value: AppConfig.otpPhone,
                     groupValue: _selectedMethod,
@@ -84,7 +86,8 @@ class _SelectOtpMethodScreenState extends State<SelectOtpMethodScreen> {
                   ),
                   RadioListTile<String>(
                     title: Text(
-                      "Email address: ${Formatters.getMaskedEmail((userProvider.user as PassengerModel).email)}"
+                      "Email address: ${Formatters.getMaskedEmail((userProvider.user as PassengerModel).email)}",
+                      style: theme.textTheme.bodyMedium,
                     ),
                     value: AppConfig.otpEmail,
                     groupValue: _selectedMethod,

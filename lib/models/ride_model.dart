@@ -48,19 +48,16 @@ class RideModel {
         "pickup": data['route']['pickup'] ?? '',
         "drop": data['route']['drop'] ?? '',
       },
-      stops: List<Map<String, dynamic>>.from(
-          data['stops']?.map((stop) => stop as Map<String, dynamic>) ?? []),
+      stops: List<Map<String, dynamic>>.from(data['stops']?.map((item) => item as Map<String, dynamic>) ?? []),
       departureTime: (data['departure_time'] as Timestamp).toDate(),
       completedTime: data['completed_time'] != null
-          ? (data['completed_time'] as Timestamp).toDate()
-          : DateTime.now(),
+        ? (data['completed_time'] as Timestamp).toDate()
+        : DateTime.now(),
       duration: data['duration'] ?? 60,
       totalSeats: data['total_seats'] ?? 0,
       availableSeats: data['available_seats'] ?? 0,
       reservedSeats: data['reserved_seats'] ?? 0,
-      passengers: List<Map<String, dynamic>>.from(
-          data['passengers']?.map((item) => item as Map<String, dynamic>) ??
-              []),
+      passengers: List<Map<String, dynamic>>.from(data['passengers']?.map((item) => item as Map<String, dynamic>) ?? []),
       status: data['status'] ?? 'scheduled',
       totalIncome: (data['total_income'] ?? 0).toDouble(),
       distance: (data['distance'] ?? 0).toDouble(),
@@ -76,9 +73,9 @@ class RideModel {
         "pickup": route['pickup'] ?? '',
         "drop": route['drop'] ?? '',
       },
-      "stops": stops.map((stop) => stop).toList(),
+      "stops": stops.map((item) => item).toList(),
       "departure_time": Timestamp.fromDate(departureTime),
-      "completed_time": Timestamp.fromDate(departureTime), //completedTime
+      "completed_time": Timestamp.fromDate(departureTime),
       "duration": duration,
       "total_seats": totalSeats,
       "available_seats": availableSeats,

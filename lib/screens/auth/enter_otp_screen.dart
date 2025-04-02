@@ -160,6 +160,8 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
   
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     // Retrieve user role, id, and otp method
     final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     final String otpMethod = args?['otp-method'] ?? AppConfig.otpPhone;
@@ -167,7 +169,7 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
     final userProvider = Provider.of<UserProvider>(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomAuthAppbar(),
       body: SafeArea(
         child: Center(
@@ -192,12 +194,12 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
                 else ...[
                   Text(
                     "We've sent an OTP to your $otpMethod (${otpMethod == AppConfig.otpEmail ? Formatters.getMaskedEmail((userProvider.user as PassengerModel).email) : Formatters.getMaskedPhoneNumber(userProvider.user?.phone)}). \nEnter it below to continue.",
-                    style: TextStyle(fontSize: 15),
+                    style: theme.textTheme.bodyMedium,
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 20),
           
-                  _buildOtpInputField(),
+                  _buildOtpInputField(theme),
                   SizedBox(height: 25),
 
                   CustomButton(
@@ -214,7 +216,7 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
     );
   }
 
-  Column _buildOtpInputField() {
+  Column _buildOtpInputField(ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -242,7 +244,7 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
               : "Resend OTP",
             style: TextStyle(
               fontSize: 12,
-              color: _isOtpSent ? Colors.grey : const Color.fromARGB(223, 68, 137, 255),
+              color: _isOtpSent ? theme.disabledColor : const Color.fromARGB(223, 68, 137, 255),
             ),
           ),
         ),

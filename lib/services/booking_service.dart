@@ -9,11 +9,15 @@ class BookingService {
   Future<bool> createSingleBooking(
       String rideId,
       String userId,
+      String username,
       String paymentMethod,
       String tripType,
       DateTime bookingDate,
-      double amount) async {
+      double amount,
+      String pickup) async {
     try {
+      bool isPaid = paymentMethod == "Card";
+
       if (paymentMethod == 'Current Balance') {
         DocumentSnapshot userDoc =  await _db.collection('passengers').doc(userId).get();
         if (!userDoc.exists) throw Exception('User not found');
@@ -25,6 +29,7 @@ class BookingService {
             .collection('passengers')
             .doc(userId)
             .update({'wallet_balance': walletBalance - amount});
+          isPaid = true;
       }
 
       String bookingId = _db.collection('bookings').doc('single').collection('rides').doc().id;
@@ -37,11 +42,12 @@ class BookingService {
         status: status,
         amount: amount,
         bookedAt: DateTime.now(),
-        isPaid: false,
+        isPaid: isPaid,
         tripType: tripType,
         bookingDate: bookingDate, 
         paymentMethod: paymentMethod,
-        cancelledDate: null
+        cancelledDate: null,
+        pickup: pickup,
       );
 
       await _db
@@ -53,7 +59,15 @@ class BookingService {
 
       await _db.collection('rides').doc(rideId).update({
         'available_seats': FieldValue.increment(-1),
-        'passengers': FieldValue.arrayUnion([userId])
+        'passengers': FieldValue.arrayUnion([
+          {
+            "attendance_status": "Coming",
+            "is_paid": isPaid,
+            "name": username,
+            "passenger_id": userId,
+            "pickup": pickup,
+          }
+        ])
       });
       return true;
     } catch (e) {
@@ -62,15 +76,32 @@ class BookingService {
   }
 
   //create monthly booking
-  Future<void> createMonthlyBooking(
-      String userId, String rideId, double amount) async {
+  Future<bool> createMonthlyBooking(
+      String userId, String username, String rideId, double amount, String paymentMethod, String pickup) async {
     try {
+      bool isPaid = paymentMethod == "Card";
+
+      if (paymentMethod == 'Current Balance') {
+        DocumentSnapshot userDoc =  await _db.collection('passengers').doc(userId).get();
+        if (!userDoc.exists) throw Exception('User not found');
+
+        double walletBalance = (userDoc['wallet_balance'] as num?)?.toDouble() ?? 0.0;
+        if (walletBalance < amount) return false;
+
+        await _db
+          .collection('passengers')
+          .doc(userId)
+          .update({'wallet_balance': walletBalance - amount});
+        isPaid = true;
+      }
+
       String bookingId = _db
         .collection('bookings')
         .doc('monthly')
         .collection('rides')
         .doc()
         .id;
+      
 
       DateTime now = DateTime.now();
       DateTime startDate = DateTime(now.year, now.month, 1);
@@ -86,7 +117,8 @@ class BookingService {
         isPaid: false,
         startDate: startDate,
         endDate: endDate, 
-        paymentMethod: ''
+        paymentMethod: paymentMethod,
+        pickup: pickup,
       );
 
       await _db
@@ -97,9 +129,18 @@ class BookingService {
         .set(booking.toFirestore());
 
       await _db.collection('rides').doc(rideId).update({
-        'reserved_seats': FieldValue.increment(1),
-        'passengers': FieldValue.arrayUnion([userId])
+        'available_seats': FieldValue.increment(-1),
+        'passengers': FieldValue.arrayUnion([
+          {
+            "attendance_status": "Coming",
+            "is_paid": isPaid,
+            "name": username,
+            "passenger_id": userId,
+            "pickup": pickup,
+          }
+        ])
       });
+      return true;
     } catch (e) {
       throw Exception('Fail to create monthly booking: $e');
     }

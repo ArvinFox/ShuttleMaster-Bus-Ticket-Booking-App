@@ -10,6 +10,7 @@ class BookingModel {
   DateTime? cancelledDate;
   final bool isPaid;
   final String paymentMethod;
+  final String? pickup;
 
   BookingModel({
     required this.bookingId, 
@@ -20,7 +21,8 @@ class BookingModel {
     required this.bookedAt, 
     this.cancelledDate,
     this.isPaid = false,
-    required this.paymentMethod
+    required this.paymentMethod,
+    this.pickup,
   });
 
   factory BookingModel.fromFirestore(DocumentSnapshot doc) {
@@ -43,6 +45,7 @@ class BookingModel {
       "cancelled_date": cancelledDate != null ? Timestamp.fromDate(cancelledDate!) : null,
       "is_paid": isPaid,
       "payment_method": paymentMethod,
+      "pickup": pickup,
     };
   }
 }
@@ -62,7 +65,8 @@ class SingleRideBooking extends BookingModel {
     required this.tripType,
     required this.bookingDate, 
     required super.paymentMethod,
-    required super.cancelledDate
+    required super.cancelledDate,
+    super.pickup,
   });
 
   factory SingleRideBooking.fromFirestore(DocumentSnapshot doc) {
@@ -79,6 +83,7 @@ class SingleRideBooking extends BookingModel {
       tripType: data['trip_type'] ?? 'One-Way',
       bookingDate: (data['booking_date'] as Timestamp).toDate(),
       paymentMethod: data['payment_method'] ?? '',
+      pickup: data['pickup'] ?? '',
       cancelledDate: data['cancelled_date'] != null ? (data['cancelled_date'] as Timestamp).toDate() : null
     );
   }
@@ -104,7 +109,8 @@ class MonthlyBooking extends BookingModel {
       super.isPaid,
       required this.startDate,
       required this.endDate,
-      required super.paymentMethod
+      required super.paymentMethod,
+      super.pickup,
   });
 
   factory MonthlyBooking.fromFirestore(DocumentSnapshot doc) {
@@ -121,6 +127,7 @@ class MonthlyBooking extends BookingModel {
       startDate: (data['start_date'] as Timestamp).toDate(),
       endDate: (data['end_date'] as Timestamp).toDate(),
       paymentMethod: data['payment_method'] ?? '',
+      pickup: data['pickup'] ?? '',
     );
   }
 

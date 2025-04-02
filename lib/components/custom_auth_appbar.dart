@@ -5,9 +5,11 @@ class CustomAuthAppbar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return AppBar(
-      foregroundColor: Colors.grey,
-      backgroundColor: Colors.white,
+      foregroundColor: theme.appBarTheme.foregroundColor,
+      backgroundColor: theme.appBarTheme.backgroundColor,
       leadingWidth: 100,
       leading: GestureDetector(
         onTap: () {
@@ -22,7 +24,7 @@ class CustomAuthAppbar extends StatelessWidget implements PreferredSizeWidget {
           ],
         ),
       ),
-      flexibleSpace: Container(color: Colors.white),
+      flexibleSpace: Container(color: theme.appBarTheme.backgroundColor),
     );
   }
   

@@ -67,6 +67,8 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return PopScope(
       canPop: _selectedIndex == 0,
       onPopInvokedWithResult: (didPop, result) {
@@ -87,11 +89,11 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
             ),
           ),
           child: BottomNavigationBar(
-            backgroundColor: Colors.white,
+            backgroundColor: theme.bottomNavigationBarTheme.backgroundColor,
             currentIndex: _selectedIndex,
             onTap: _onItemTapped,
-            selectedItemColor: Colors.blueAccent,
-            unselectedItemColor: Colors.grey,
+            selectedItemColor: theme.bottomNavigationBarTheme.selectedItemColor,
+            unselectedItemColor: theme.bottomNavigationBarTheme.unselectedItemColor,
             showSelectedLabels: true,
             type: BottomNavigationBarType.fixed,
             items: _navItems,

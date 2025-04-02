@@ -24,7 +24,7 @@ class _TripInfoScreenState extends State<TripInfoScreen> {
   String? routeName;
   String? startLocation;
   String? endLocation;
-  List<String>? stops;
+  List<Map<String, dynamic>>? stops;
   String? departureTime;
   String? estimatedArrivalTime;
   int? reservedSeats;
@@ -49,13 +49,10 @@ class _TripInfoScreenState extends State<TripInfoScreen> {
       ride = await _rideService.getRideById("5"); // For testing purposes
 
       if (ride != null) {
-        Helpers.debugPrintWithBorder("NOT NULL");
-        Helpers.debugPrintWithBorder(ride.toString());
-
         routeName = "${ride?.route['pickup']} - ${ride?.route['drop']}";
         startLocation = "${ride?.route['pickup']}";
         endLocation = "${ride?.route['drop']}";
-        //stops = ride!.stops;
+        stops = ride!.stops;
         departureTime = DateFormat('hh:mm a').format(ride!.departureTime);
         estimatedArrivalTime = DateFormat('hh:mm a').format(ride!.departureTime.add(Duration(minutes: ride!.duration)));
         reservedSeats = ride!.reservedSeats;
@@ -65,8 +62,6 @@ class _TripInfoScreenState extends State<TripInfoScreen> {
         collectedFare = ride!.totalIncome;
         outstandingFare = totalExpectedFare! - collectedFare!;
         passengers = ride!.passengers;
-      } else {
-        Helpers.debugPrintWithBorder("NULL");
       }
 
     } catch (e) {
@@ -87,30 +82,32 @@ class _TripInfoScreenState extends State<TripInfoScreen> {
     return totalExpectedFare;
   }
 
-  Widget _buildSectionHeader(String title) {
+  Widget _buildSectionHeader(String title, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-        Divider(color: Colors.grey[800]),
+        Text(title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+        Divider(color: theme.dividerColor),
         SizedBox(height: 8),
       ],
     );
   }
 
-  Widget _buildSectionContent(String content) {
+  Widget _buildSectionContent(String content, ThemeData theme) {
     return Text(
       content,
-      style: TextStyle(fontSize: 16),
+      style: theme.textTheme.bodyMedium,
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     final currencyFormat = NumberFormat.currency(locale: 'en_US', symbol: 'LKR ');
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomMainAppbar(title: "Trip Information", showLeading: false),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -121,30 +118,30 @@ class _TripInfoScreenState extends State<TripInfoScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildSectionHeader("Route Information"),
-                    _buildSectionContent("Route: $routeName"),
-                    _buildSectionContent("Start: $startLocation"),
-                    _buildSectionContent("End: $endLocation"),
-                    _buildSectionContent("Stops: ${stops?.join(', ')}"),
+                    _buildSectionHeader("Route Information", theme),
+                    _buildSectionContent("Route: $routeName", theme),
+                    _buildSectionContent("Start: $startLocation", theme),
+                    _buildSectionContent("End: $endLocation", theme),
+                    _buildSectionContent("Stops: ${stops?.map((stopMap) => stopMap['stop']).join(', ')}", theme),
 
                     SizedBox(height: 16),
-                    _buildSectionHeader("Trip Timing"),
-                    _buildSectionContent("Departure: $departureTime"),
-                    _buildSectionContent("Arrival (Est.): $estimatedArrivalTime"),
+                    _buildSectionHeader("Trip Timing", theme),
+                    _buildSectionContent("Departure: $departureTime", theme),
+                    _buildSectionContent("Arrival (Est.): $estimatedArrivalTime", theme),
 
                     SizedBox(height: 16),
-                    _buildSectionHeader("Seat Information"),
-                    _buildSectionContent("Reserved Seats: $reservedSeats"),
-                    _buildSectionContent("Available Seats: $availableSeats"),
+                    _buildSectionHeader("Seat Information", theme),
+                    _buildSectionContent("Reserved Seats: $reservedSeats", theme),
+                    _buildSectionContent("Available Seats: $availableSeats", theme),
 
                     SizedBox(height: 16),
-                    _buildSectionHeader("Financial Information"),
-                    _buildSectionContent("Total Fare: ${currencyFormat.format(totalExpectedFare)}"),
-                    _buildSectionContent("Collected Fare: ${currencyFormat.format(collectedFare)}"),
-                    _buildSectionContent("Outstanding Fare: ${currencyFormat.format(outstandingFare)}"),
+                    _buildSectionHeader("Financial Information", theme),
+                    _buildSectionContent("Total Fare: ${currencyFormat.format(totalExpectedFare)}", theme),
+                    _buildSectionContent("Collected Fare: ${currencyFormat.format(collectedFare)}", theme),
+                    _buildSectionContent("Outstanding Fare: ${currencyFormat.format(outstandingFare)}", theme),
 
                     SizedBox(height: 16),
-                    _buildSectionHeader("Passengers"),
+                    _buildSectionHeader("Passengers", theme),
                     passengers != null && passengers!.isNotEmpty
                       ? ListView.builder(
                           shrinkWrap: true,
@@ -160,10 +157,10 @@ class _TripInfoScreenState extends State<TripInfoScreen> {
                                   Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Text(passenger?['name'], style: TextStyle(fontSize: 16)),
+                                      Text(passenger?['name'], style: theme.textTheme.bodyMedium),
                                       Text(
                                         "Pickup: ${passenger?['pickup']}",
-                                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
                                       ),
                                     ],
                                   ),
@@ -188,7 +185,7 @@ class _TripInfoScreenState extends State<TripInfoScreen> {
                             );
                           },
                         )
-                      : _buildSectionContent("No passengers"),
+                      : _buildSectionContent("No passengers", theme),
                   ],
                 ),
           ),

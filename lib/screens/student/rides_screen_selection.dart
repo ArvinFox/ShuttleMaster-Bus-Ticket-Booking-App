@@ -31,13 +31,15 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomMainAppbar(title: 'Rides', showLeading: true),
       body: SafeArea(
         child: widget.busType == "Private Bus"
-            ? _buildRideSearch()
-            : _buildTimetableUI(),
+            ? _buildRideSearch(theme)
+            : _buildTimetableUI(theme),
       ),
     );
   }
@@ -147,7 +149,7 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
     });
   }
 
-  Widget _buildRideSearch() {
+  Widget _buildRideSearch(ThemeData theme) {
     return isLoading
         ? Center(child: CircularProgressIndicator())
         : SingleChildScrollView(
@@ -157,10 +159,10 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
                 padding: EdgeInsets.all(15),
                 child: Column(
                   children: [
-                    _buildSearchFields(),
+                    _buildSearchFields(theme),
                     SizedBox(height: 20),
                     filteredRides.isEmpty
-                        ? Text("No rides found.")
+                        ? Text("No rides found.", style: theme.textTheme.bodyMedium)
                         : Column(
                             children: filteredRides.expand((ride) {
                               return ride.stops.map((stop) {
@@ -169,6 +171,7 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
                                   return SizedBox();
                                 }
                                 return RideInfoCard(
+                                  rideId: ride.rideId,
                                   busNo: ride.busNo,
                                   startPoint: ride.incoming
                                       ? stop['stop']
@@ -194,7 +197,7 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
           );
   }
 
-  Widget _buildTimetableUI() {
+  Widget _buildTimetableUI(ThemeData theme) {
     return isLoading
         ? Center(child: CircularProgressIndicator())
         : Padding(
@@ -210,7 +213,7 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
                     child: DataTable(
                       columnSpacing: 20,
                       headingRowColor: MaterialStateColor.resolveWith(
-                          (states) => Colors.blueAccent),
+                          (states) => theme.primaryColor),
                       headingTextStyle: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
@@ -226,14 +229,14 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
                         return DataRow(
                           color: MaterialStateProperty.all(
                             timetable.indexOf(ride) % 2 == 0
-                                ? Colors.grey[200]!
-                                : Colors.white,
+                                ? theme.colorScheme.surface
+                                : theme.scaffoldBackgroundColor,
                           ),
                           cells: [
-                            DataCell(Text(ride["busNo"]!)),
-                            DataCell(Text(ride["start"]!)),
-                            DataCell(Text(ride["end"]!)),
-                            DataCell(Text(ride["time"]!)),
+                            DataCell(Text(ride["busNo"]!, style: theme.textTheme.bodyMedium)),
+                            DataCell(Text(ride["start"]!, style: theme.textTheme.bodyMedium)),
+                            DataCell(Text(ride["end"]!, style: theme.textTheme.bodyMedium)),
+                            DataCell(Text(ride["time"]!, style: theme.textTheme.bodyMedium)),
                           ],
                         );
                       }).toList(),
@@ -245,19 +248,19 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
           );
   }
 
-  Widget _buildSearchFields() {
+  Widget _buildSearchFields(ThemeData theme) {
     return Container(
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.scaffoldBackgroundColor,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.blueAccent, width: 1),
+        border: Border.all(color: theme.primaryColor, width: 1),
       ),
       child: Column(
         children: [
-          _buildAutoCompleteTextField("Pickup Location", true),
+          _buildAutoCompleteTextField("Pickup Location", true, theme),
           SizedBox(height: 10),
-          _buildAutoCompleteTextField("Drop Location", false),
+          _buildAutoCompleteTextField("Drop Location", false, theme),
           SizedBox(height: 20),
           ElevatedButton(
             onPressed: _searchRides,
@@ -276,7 +279,7 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
     );
   }
 
-  Widget _buildAutoCompleteTextField(String hintText, bool isPickup) {
+  Widget _buildAutoCompleteTextField(String hintText, bool isPickup, ThemeData theme) {
     TextEditingController controller =
         isPickup ? _pickupController : _dropController;
 
@@ -285,7 +288,10 @@ class _RidesScreenSelectionState extends State<RidesScreenSelection> {
       children: [
         Text(
           isPickup ? "Pickup " : "Drop ",
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+          style: theme.textTheme.bodyLarge?.copyWith(
+            fontSize: 20,
+            fontWeight: FontWeight.w600
+          ),
         ),
         SizedBox(height: 5),
         Autocomplete<String>(

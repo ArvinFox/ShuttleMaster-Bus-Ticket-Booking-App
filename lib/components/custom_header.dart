@@ -17,6 +17,9 @@ class CustomHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Column(
       children: [
         Container(
@@ -27,7 +30,7 @@ class CustomHeader extends StatelessWidget {
             bottom: 20,
           ),
           decoration: BoxDecoration(
-            color: Colors.blueAccent,
+            color: theme.primaryColor,
             borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(10),
               bottomRight: Radius.circular(10),
@@ -61,7 +64,7 @@ class CustomHeader extends StatelessWidget {
                   ),
                   CircleAvatar(
                     radius: 30,
-                    backgroundColor: Colors.white,
+                    backgroundColor: isDarkMode ? Colors.grey[800] : Colors.white,
                     child: Icon(
                       Icons.person,
                       color: Colors.grey,
@@ -71,7 +74,7 @@ class CustomHeader extends StatelessWidget {
                 ],
               ),
               SizedBox(height: 20),
-              _buildInfoBox(),
+              _buildInfoBox(context),
             ],
           ),
         ),
@@ -79,11 +82,14 @@ class CustomHeader extends StatelessWidget {
     );
   }
 
-  Container _buildInfoBox() {
+  Container _buildInfoBox(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkMode = theme.brightness == Brightness.dark;
+
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDarkMode ? Colors.grey[900] : Colors.white,
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -93,18 +99,13 @@ class CustomHeader extends StatelessWidget {
             role == AppConfig.driverRole 
               ? 'Kadawatha - NSBM' 
               : 'Current Account Balance:',
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 16,
-            ),
+            style: theme.textTheme.bodyMedium,
           ),
           Text(
             role == AppConfig.driverRole 
               ? busNo! 
               : accountBalance!.toString(),
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 18,
+            style: theme.textTheme.bodyLarge?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),

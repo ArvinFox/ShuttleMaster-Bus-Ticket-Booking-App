@@ -29,203 +29,126 @@ class _TripHistoryState extends State<TripHistory> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomMainAppbar(title: 'Trip History', showLeading: true),
-      body: Consumer<RidesProvider>(
-        builder: (context, ridesProvider, child) {
-          if (ridesProvider.rides.isEmpty) {
-            return Center(child: Text("No trip history available"));
-          } 
-          else 
-          {
-            if (ridesProvider.isLoading) {
-              return Center(child: CircularProgressIndicator());
+      body: SingleChildScrollView(
+        child: Consumer<RidesProvider>(
+          builder: (context, ridesProvider, child) {
+            if (ridesProvider.rides.isEmpty) {
+              return Center(child: Text("No trip history available", style: theme.textTheme.bodyMedium));
+            } 
+            else 
+            {
+              if (ridesProvider.isLoading) {
+                return Center(child: CircularProgressIndicator());
+              }
+        
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
+                itemCount: ridesProvider.rides.length,
+                itemBuilder: (context, index) {
+                  final ride = ridesProvider.rides[index];
+        
+                  if(ride.status == 'Completed'){
+                    return _buildTripCompletedCard(
+                      context,
+                      Formatters.formatDate(ride.departureTime), 
+                      Formatters.formatTime(ride.departureTime), 
+                      ride.route['pickup'] ?? 'Pickup',
+                      ride.route['drop'] ?? 'Drop',
+                      ride.totalIncome, 
+                      (ride.completedTime != null
+                        ? '${Formatters.formatDate(ride.completedTime!)}  ${Formatters.formatTime(ride.completedTime!)}'
+                        : 'N/A'),
+                      ride.reservedSeats
+                    );
+                  }
+                  return null;
+                },
+              );
             }
-
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              itemCount: ridesProvider.rides.length,
-              itemBuilder: (context, index) {
-                final ride = ridesProvider.rides[index];
-
-                if(ride.status == 'Completed'){
-                  return _buildTripCompletedCard(
-                    Formatters.formatDate(ride.departureTime), 
-                    Formatters.formatTime(ride.departureTime), 
-                    ride.route['pickup'] ?? 'Pickup',
-                    ride.route['drop'] ?? 'Drop',
-                    ride.totalIncome, 
-                    (ride.completedTime != null
-                      ? '${Formatters.formatDate(ride.completedTime!)}  ${Formatters.formatTime(ride.completedTime!)}'
-                      : 'N/A'),
-                    ride.reservedSeats
-                  );
-                }
-                return null;
-              },
-            );
-          }
-        },
+          },
+        ),
       ),
     );
   }
 }
 
-Widget _buildTripCompletedCard(String departureDate,String time,String pickup,String drop,double income, String? completedDateTime,int seats) {
+Widget _buildTripCompletedCard(BuildContext context, String departureDate,String time,String pickup,String drop,double income, String? completedDateTime,int seats) {
+  final theme = Theme.of(context);
+
   return Padding(
     padding: const EdgeInsets.all(10),
     child: Card(
-      child: Container(
-        width: double.infinity,
-        height: 330,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: Color(0xFFCACACA).withOpacity(0.20),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.done,
+      color: theme.colorScheme.surface,
+      // shape: RoundedRectangleBorder(
+      //   borderRadius: BorderRadius.circular(20),
+      // ),
+      child: Padding(
+        padding: const EdgeInsets.all(10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.done,
+                      color: Color.fromARGB(255, 28, 150, 34)
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      "Completed",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                         color: Color.fromARGB(255, 28, 150, 34)
                       ),
-                      SizedBox(width: 10),
-                      Text(
-                        "Completed",
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 28, 150, 34)
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Route",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
                     ),
-                  ),
-                  Text(
-                    '$pickup - $drop',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Departure Date",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    departureDate,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Departure Time",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    time,
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Reserved Seats",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    seats.toString(),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    "Total Income",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    "Rs.${income.toStringAsFixed(2)}",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                ],
-              ),
-              Divider(color: Colors.black),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Completed Date & time",
-                    style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold),
-                  ),
-                  Text(
-                    completedDateTime!,
-                    style: TextStyle(fontSize: 15,fontWeight: FontWeight.normal),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(height: 8),
+            _buildInfoRow(theme, "Route", "$pickup - $drop"),
+            _buildInfoRow(theme, "Departure Date", departureDate),
+            _buildInfoRow(theme, "Departure Time", time),
+            _buildInfoRow(theme, "Reserved Seats", seats.toString()),
+            _buildInfoRow(theme, "Total Income", "Rs.${income.toStringAsFixed(2)}"),
+            Divider(color: theme.dividerColor),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Completed Date & time",
+                  style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  completedDateTime!,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     ),
+  );
+}
+
+Widget _buildInfoRow(ThemeData theme, String label, String value) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Text(label, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold)),
+      Text(value, style: theme.textTheme.bodyMedium),
+    ],
   );
 }

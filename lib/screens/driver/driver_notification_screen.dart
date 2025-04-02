@@ -31,8 +31,10 @@ class _DriverNotificationScreenState extends State<DriverNotificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomMainAppbar(title: "Notifications", showLeading: false),
       body: SingleChildScrollView(
         child: Consumer<NotificationProvider>(
@@ -46,7 +48,7 @@ class _DriverNotificationScreenState extends State<DriverNotificationScreen> {
               return Center(
                 child: Text(
                   "No new notifications",
-                  style: TextStyle(fontSize: 18),
+                  style: theme.textTheme.bodyMedium,
                 ),
               );
             }
@@ -58,7 +60,7 @@ class _DriverNotificationScreenState extends State<DriverNotificationScreen> {
               itemBuilder: (context, index) {
                 final notification = currentNotifications[index];
                 
-                return _buildNotificationCard(notification);
+                return _buildNotificationCard(notification, theme);
               },
             );
           },
@@ -67,7 +69,14 @@ class _DriverNotificationScreenState extends State<DriverNotificationScreen> {
     );
   }
 
-  GestureDetector _buildNotificationCard(NotificationModel notification) {
+  GestureDetector _buildNotificationCard(NotificationModel notification, ThemeData theme) {
+    final bool isDarkMode = theme.brightness == Brightness.dark;
+    final Color cardColor = theme.colorScheme.surface;
+    final Color textColor = theme.textTheme.bodyLarge?.color ?? Colors.white;
+    final Color borderColor = notification.isRead
+      ? Colors.transparent
+      : isDarkMode ? Colors.white : Colors.black;
+
     return GestureDetector(
       onTap: () {
         if (!notification.isRead) {
@@ -79,14 +88,14 @@ class _DriverNotificationScreenState extends State<DriverNotificationScreen> {
         margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         padding: EdgeInsets.fromLTRB(8, 12, 8, 10),
         decoration: BoxDecoration(
-          color: Colors.grey[200],
+          color: cardColor,
           borderRadius: BorderRadius.circular(8),
           border: notification.isRead 
             ? Border()
-            : Border.all(color: Colors.black, width: 1.5),
+            : Border.all(color: borderColor, width: 1.5),
           boxShadow: notification.isRead ? [] : [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.3),
+              color: Colors.grey.withOpacity(isDarkMode ? 0.1 : 0.3),
               spreadRadius: 2,
               blurRadius: 5,
               offset: Offset(0, 3),
@@ -102,7 +111,7 @@ class _DriverNotificationScreenState extends State<DriverNotificationScreen> {
                   Icon(Icons.alarm, size: 12,),
                   SizedBox(width: 2),
                   Text(
-                    DateFormat('hh:mm a').format(notification.date), style: TextStyle(fontSize: 12),
+                    DateFormat('hh:mm a').format(notification.date), style: TextStyle(fontSize: 12, color: textColor),
                   ),
               ],
             ),
@@ -113,7 +122,7 @@ class _DriverNotificationScreenState extends State<DriverNotificationScreen> {
                 Icon(
                   NotificationStyles.getNotificationIcon(NotificationStyles.getNotificationType(notification.type)), 
                   size: 20, 
-                  color: NotificationStyles.getNotificationItemColor(NotificationStyles.getNotificationType(notification.type)),
+                  color: NotificationStyles.getNotificationItemColor(context, NotificationStyles.getNotificationType(notification.type)),
                 ),
                 SizedBox(width: 2),
                 Text(
@@ -121,19 +130,19 @@ class _DriverNotificationScreenState extends State<DriverNotificationScreen> {
                   style: TextStyle(
                     fontSize: 18, 
                     fontWeight: FontWeight.bold, 
-                    color: NotificationStyles.getNotificationItemColor(NotificationStyles.getNotificationType(notification.type)),
+                    color: NotificationStyles.getNotificationItemColor(context, NotificationStyles.getNotificationType(notification.type)),
                   ),
                 ),
               ],
             ),
             SizedBox(height: 8),
       
-            // Text(notification.message),
-            Text("This is to inform you that the above booking has been canceled."),
-            SizedBox(height: 8),
-            Text("Trip Details"),
-            Text("\t• Pickup Location: NSBM"),
-            Text("\t• Drop-off Location: Mathara"),
+            Text(notification.message, style: TextStyle(color: textColor)),
+            // Text("This is to inform you that the above booking has been canceled."),
+            // SizedBox(height: 8),
+            // Text("Trip Details"),
+            // Text("\t• Pickup Location: NSBM"),
+            // Text("\t• Drop-off Location: Mathara"),
           ],
         ),
       ),

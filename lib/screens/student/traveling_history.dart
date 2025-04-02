@@ -57,98 +57,97 @@ class _TravelingHistoryState extends State<TravelingHistory> {
     return rideMap;
   }
 
-  void _showCancelConfirmation(BuildContext context, String bookingId) {
+  void _showConfirmationDialog(
+    BuildContext context,
+    String bookingId,
+    String title,
+    String content,
+    Future<void> Function(String bookingId) onConfirm,
+    String successMessage,
+  ) {
+    final theme = Theme.of(context);
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Cancell Booking"),
+          backgroundColor: theme.colorScheme.surface,
+          title: Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
           content: SizedBox(
             width: 300,
-            child: Text("Are you sure you want to cancell this booking ?")),
+            child: Text(
+              content,
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text("No")),
+              child: Text("No", style: TextStyle(color: theme.colorScheme.primary)),
+            ),
             TextButton(
               onPressed: () async {
-                try{
-                  await _bookingService.updateState(bookingId);
-
-                  BookingModel? booking = await _bookingService.getBookingById(bookingId);
-                  String rideId = booking!.rideId;
-                  String passengerId = booking.userId;
-
-                  await _rideService.updateRidesOnCancellation(rideId, passengerId);
-
-                  Helpers.showMessage(context, 'Booking cancelled successfully.');
+                try {
+                  await onConfirm(bookingId);
+                  Helpers.showMessage(context, successMessage);
                   Future.delayed(Duration(seconds: 1), () {
                     Navigator.pop(context);
                     Navigator.pushReplacementNamed(context, '/student/home');
                   });
-
-                }catch (e){
+                } catch (e) {
                   Helpers.debugPrintWithBorder('Error: $e');
                 }
               },
-              child: Text("Yes")
+              child: Text("Yes", style: TextStyle(color: theme.colorScheme.primary)),
             ),
           ],
         );
-      }
+      },
+    );
+  }
+
+  void _showCancelConfirmation(BuildContext context, String bookingId) {
+    _showConfirmationDialog(
+      context,
+      bookingId,
+      "Cancel Booking",
+      "Are you sure you want to cancel this booking?",
+      (String bookingId) async {
+        await _bookingService.updateState(bookingId);
+        BookingModel? booking = await _bookingService.getBookingById(bookingId);
+        String rideId = booking!.rideId;
+        String passengerId = booking.userId;
+        await _rideService.updateRidesOnCancellation(rideId, passengerId);
+      },
+      'Booking cancelled successfully.',
     );
   }
 
   void _showPaymentConfirmation(BuildContext context, String bookingId) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text("Payment Confirmation"),
-          content: SizedBox(
-            width: 300,
-            child: Text("Are you sure you want to confirm this payment ?")),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text("No")),
-            TextButton(
-              onPressed: () async {
-                try{
-                  await _bookingService.updatePaymentState(bookingId);
-
-                  BookingModel? booking = await _bookingService.getBookingById(bookingId);
-                  String rideId = booking!.rideId;
-                  String passengerId = booking.userId;
-
-                  await _rideService.updateRidesPayments(rideId, passengerId,bookingId);
-
-                  Helpers.showMessage(context, 'Your payment has been sucessfully completed');
-                  Future.delayed(Duration(seconds: 1), () {
-                    Navigator.pop(context);
-                    Navigator.pushReplacementNamed(context, '/student/home');
-                  });
-
-                }catch (e){
-                  Helpers.debugPrintWithBorder('Error: $e');
-                }
-              },
-              child: Text("Yes")
-            ),
-          ],
-        );
-      }
+    _showConfirmationDialog(
+      context,
+      bookingId,
+      "Payment Confirmation",
+      "Are you sure you want to confirm this payment?",
+      (String bookingId) async {
+        await _bookingService.updatePaymentState(bookingId);
+        BookingModel? booking = await _bookingService.getBookingById(bookingId);
+        String rideId = booking!.rideId;
+        String passengerId = booking.userId;
+        await _rideService.updateRidesPayments(rideId, passengerId, bookingId);
+      },
+      'Your payment has been successfully completed.',
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomMainAppbar(title: 'Traveling History', showLeading: true),
       body: SingleChildScrollView(
         child: Padding(
@@ -162,11 +161,11 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                   shrinkWrap: true,
                   itemCount: 4,
                   itemBuilder: (context, index) {
-                    return _buildActivity(buttonLabels[index], index);
+                    return _buildActivity(buttonLabels[index], index, theme);
                   },
                 ),
               ),
-              Divider(color: Colors.black),
+              Divider(color: theme.dividerColor),
               Consumer<BookingProvider>(
                 builder: (context, bookingsProvider, child) {
                   if (bookingsProvider.isLoading) {
@@ -220,8 +219,8 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                       if (_activeIndex == 3) {
                         return Column(
                           children: [
-                            _buildTotalPayable(totalPayableAmount),
-                            Divider(color: Colors.black),
+                            _buildTotalPayable(totalPayableAmount, theme),
+                            Divider(color: theme.dividerColor),
                             ListView.builder(
                               shrinkWrap: true,
                               physics: NeverScrollableScrollPhysics(),
@@ -242,7 +241,8 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                                     Formatters.formatTime(ride.departureTime),
                                     ride.route['drop'] ?? 'N/A',
                                     booking.isPaid,
-                                    booking.bookingId
+                                    booking.bookingId,
+                                    theme,
                                   );
                                 } else {
                                   return _buildTravelingUpcomingAndCancelledCard(
@@ -260,6 +260,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                                         : 'N/A')
                                       : '',
                                     booking.bookingId,
+                                    theme,
                                   );
                                 }
                               },
@@ -288,7 +289,8 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                               Formatters.formatTime(ride.departureTime),
                               ride.route['drop'] ?? 'N/A',
                               booking.isPaid,
-                              booking.bookingId
+                              booking.bookingId,
+                              theme,
                             );
                           } else {
                             return _buildTravelingUpcomingAndCancelledCard(
@@ -306,6 +308,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                                   : 'N/A')
                                 : '',
                               booking.bookingId,
+                              theme,
                             );
                           }
                         }
@@ -322,7 +325,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
   }
 
   //Upcoming, complete, cancel and payable button
-  Widget _buildActivity(String butLabel, int index) {
+  Widget _buildActivity(String butLabel, int index, ThemeData theme) {
     bool isActive = _activeIndex == index;
 
     return Padding(
@@ -334,182 +337,195 @@ class _TravelingHistoryState extends State<TravelingHistory> {
           });
         },
         style: ButtonStyle(
-          backgroundColor: MaterialStateProperty.all<Color>(
-              isActive ? Colors.blueAccent : Colors.white),
+          backgroundColor: MaterialStateProperty.resolveWith<Color>(
+          (states) => isActive
+            ? theme.colorScheme.primary
+            : theme.scaffoldBackgroundColor,
+          ),
           side: MaterialStateProperty.all<BorderSide>(
-            BorderSide(color: Colors.blueAccent),
+            BorderSide(color: theme.colorScheme.primary),
+          ),
+          foregroundColor: MaterialStateProperty.resolveWith<Color>(
+            (states) => isActive
+              ? theme.colorScheme.onPrimary
+              : theme.colorScheme.primary,
           ),
         ),
         child: Text(
           butLabel,
-          style: TextStyle(color: isActive ? Colors.white : Colors.blueAccent),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: isActive ? theme.colorScheme.onPrimary : theme.colorScheme.primary,
+            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+          ),
         ),
       ),
     );
   }
 
   //Complete and payable section
-  Widget _buildTravelingCompleteCard(String status, String date,String completedTime, double amount, String paymentMethod, String busNo,String pickup, String pickupTime, String drop,bool paymentStatus,String bookingId) {
-    bool isCompleted = _activeIndex == 1;
+  Widget _buildTravelingCompleteCard(String status, String date,String completedTime, double amount, String paymentMethod, String busNo,String pickup, String pickupTime, String drop,bool paymentStatus,String bookingId, ThemeData theme) {
+  bool isCompleted = _activeIndex == 1;
+
+  Color cardColor = theme.colorScheme.surface;
+  Color textColor = theme.textTheme.bodyMedium?.color ?? Colors.black;
+  Color paidColor = theme.colorScheme.onPrimary;
+  Color unpaidColor = Colors.red;
 
     return Padding(
       padding: const EdgeInsets.all(10),
       child: Card(
-        child: Container(
-          width: double.infinity,
-          height: isCompleted ? 310 : 400,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Color(0xFFCACACA).withOpacity(0.20),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.done,
+        color: cardColor,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.done,
+                            color: status == "Upcoming"
+                              ? Colors.orange
+                              : Color.fromARGB(255, 28, 150, 34),
+                          ),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text(
+                            status,
+                            style: TextStyle(
+                              fontSize: 20,
                               color: status == "Upcoming"
                                 ? Colors.orange
                                 : Color.fromARGB(255, 28, 150, 34),
+                              fontWeight: FontWeight.bold
                             ),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Text(
-                              status,
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: status == "Upcoming"
-                                  ? Colors.orange
-                                  : Color.fromARGB(255, 28, 150, 34),
-                                fontWeight: FontWeight.bold
-                              ),
-                            ),
-                          ],
-                        ),
-                        Text(
-                          date,
-                          textAlign: TextAlign.right,
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                        ),
-                      ],
-                    ),
-                    Text(
-                      status == "Upcoming" ? '' : completedTime,
-                      style:TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Bus No - $busNo",
-                      style:TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                    ),
-                    SizedBox(height: 8),
-                    Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        children: [
-                          Icon(Icons.circle_outlined),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Text(
-                            '$pickup  $pickupTime',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                           ),
                         ],
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Container(
-                        width: 2,
-                        height: 40,
-                        color: Colors.black,
+                      Text(
+                        date,
+                        textAlign: TextAlign.right,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w800),
                       ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: Row(
-                        children: [
-                          Icon(Icons.circle_outlined),
-                          SizedBox(
-                            width: 10,
-                          ),
-                          Text(
-                            '$drop  ${status == "Upcoming" ? '' : completedTime}',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Divider(color: Colors.black),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Amount : Rs.${amount.toStringAsFixed(2)}",
-                      style:TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                    ),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+                    ],
+                  ),
+                  Text(
+                    status == "Upcoming" ? '' : completedTime,
+                    style:theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w800,),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Bus No - $busNo",
+                    style:theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w800),
+                  ),
+                  SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
                       children: [
-                        Text(
-                          paymentStatus == false ? "Not Paid" : "Paid",
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: paymentStatus == false
-                                  ? Colors.red
-                                  : Colors.black),
+                        Icon(Icons.circle_outlined, color: textColor,),
+                        SizedBox(
+                          width: 10,
                         ),
                         Text(
-                          paymentStatus == false ? "" : "(By $paymentMethod)",
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+                          '$pickup  $pickupTime',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w800),
                         ),
                       ],
                     ),
-                  ],
-                ),
-                if (!isCompleted || _activeIndex == 3)
-                  Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(10),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (_activeIndex == 3) {
-                            //payment action
-                            _showPaymentConfirmation(context, bookingId);
-                          }
-                        },
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>( Colors.blueAccent),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Container(
+                      width: 2,
+                      height: 40,
+                      color: textColor,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      children: [
+                        Icon(Icons.circle_outlined, color: textColor,),
+                        SizedBox(
+                          width: 10,
                         ),
-                        child: Text(
-                          "pay",
-                          style: TextStyle(color: Colors.white),
+                        Text(
+                          '$drop  ${status == "Upcoming" ? '' : completedTime}',
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w800),
                         ),
+                      ],
+                    ),
+                  ),
+                  Divider(color: theme.dividerColor),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Amount : Rs.${amount.toStringAsFixed(2)}",
+                    style:theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w800),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        paymentStatus == false ? "Not Paid" : "Paid",
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: paymentStatus ? paidColor : unpaidColor,),
+                      ),
+                      Text(
+                        paymentStatus == false ? "" : "(By $paymentMethod)",
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w800),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              if (!isCompleted || _activeIndex == 3)
+                Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(10),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (_activeIndex == 3) {
+                          //payment action
+                          _showPaymentConfirmation(context, bookingId);
+                        }
+                      },
+                      style: ButtonStyle(
+                        backgroundColor: MaterialStateProperty.all<Color>( Colors.blueAccent),
+                      ),
+                      child: Text(
+                        "Pay",
+                        style: TextStyle(color: Colors.white),
                       ),
                     ),
-                  )
-              ],
-            ),
+                  ),
+                )
+            ],
           ),
         ),
       ),
@@ -517,228 +533,156 @@ class _TravelingHistoryState extends State<TravelingHistory> {
   }
 
   //Upcoming & Cancellation section
-  Widget _buildTravelingUpcomingAndCancelledCard(String scheduleDate,String time,String busNo,String pickup,String drop,double amount, bool paymentStatus, String paymentMethod, String? cancellDateTime,String bookingId) {
+  Widget _buildTravelingUpcomingAndCancelledCard(String scheduleDate,String time,String busNo,String pickup,String drop,double amount, bool paymentStatus, String paymentMethod, String? cancellDateTime,String bookingId, ThemeData theme) {
+    bool isUpcoming = _activeIndex == 0;
+    Color? statusColor = isUpcoming ? Colors.orangeAccent : theme.textTheme.bodyLarge?.color;
+
     return Padding(
       padding: const EdgeInsets.all(10),
       child: Card(
-        child: Container(
-          width: double.infinity,
-          height: _activeIndex == 0 ? 330 : 270,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            color: Color(0xFFCACACA).withOpacity(0.20),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          _activeIndex == 0 ? Icons.done : Icons.cancel,
-                          color: _activeIndex == 0
-                            ? Colors.orangeAccent
-                            : Colors.black,
+        color: theme.colorScheme.surface,
+        child: Padding(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        isUpcoming ? Icons.event : Icons.cancel,
+                        color: statusColor,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        isUpcoming ? "Upcoming Booking" : "Cancelled Successfully",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: statusColor,
                         ),
-                        SizedBox(width: 10),
-                        Text(
-                          _activeIndex == 0
-                            ? "Upcoming Booking"
-                            : "Cancelled Sucessfully",
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: _activeIndex == 0
-                              ? Colors.orangeAccent
-                              : Colors.black
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              SizedBox(height: 8),
+
+              _buildDetailRow("Schedule Date", scheduleDate, theme),
+              _buildDetailRow("Time", time, theme),
+              _buildDetailRow("Bus No", busNo, theme),
+              _buildDetailRow("Pickup", pickup, theme),
+              _buildDetailRow("Drop", drop, theme),
+
+              Divider(color: theme.dividerColor),
+              isUpcoming
+                ? Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Amount : Rs.${amount.toStringAsFixed(2)}",
+                            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Schedule Date",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      scheduleDate,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Time",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      time,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Bus No",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      busNo,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Pickup",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      pickup,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Drop",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      drop,
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.normal,
-                      ),
-                    ),
-                  ],
-                ),
-                Divider(color: Colors.black),
-                _activeIndex == 0
-                  ? Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "Amount : Rs.${amount.toStringAsFixed(2)}",
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  paymentStatus == false
-                                    ? "Not Paid"
-                                    : "Paid",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w800,
-                                    color: paymentStatus == false
-                                      ? Colors.red
-                                      : Colors.black
-                                  ),
-                                ),
-                                Text(
-                                  paymentStatus == false
-                                    ? ""
-                                    : "(By $paymentMethod)",
-                                  style: TextStyle(fontSize: 12,fontWeight: FontWeight.w800),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.all(10),
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  //cancell booking
-                                  _showCancelConfirmation(context,bookingId);
-                                },
-                                style: ButtonStyle(
-                                  backgroundColor:MaterialStateProperty.all<Color>( Colors.blueAccent),
-                                ),
-                                child: Text(
-                                  "Cancel Booking",
-                                  style: TextStyle(color: Colors.white),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                paymentStatus == false
+                                  ? "Not Paid"
+                                  : "Paid",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: paymentStatus == false
+                                    ? Colors.red
+                                    : theme.textTheme.bodyLarge?.color
                                 ),
                               ),
-                            )
-                          ],
-                        )
-                      ],
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Cancellation Date & time",
-                          style: TextStyle(fontSize: 18,fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          cancellDateTime!,
-                          style: TextStyle(fontSize: 15,fontWeight: FontWeight.normal),
-                        ),
-                      ],
-                    ),
-              ],
-            ),
+                              Text(
+                                paymentStatus == false
+                                  ? ""
+                                  : "(By $paymentMethod)",
+                                style: TextStyle(fontSize: 12,fontWeight: FontWeight.w800),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Padding(
+                            padding: EdgeInsets.all(10),
+                            child: ElevatedButton(
+                              onPressed: () {
+                                //cancell booking
+                                _showCancelConfirmation(context,bookingId);
+                              },
+                              style: ButtonStyle(
+                                backgroundColor:MaterialStateProperty.all<Color>( Colors.blueAccent),
+                              ),
+                              child: Text(
+                                "Cancel Booking",
+                                style: TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          )
+                        ],
+                      )
+                    ],
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Cancellation Date & time",
+                        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      Text(
+                        cancellDateTime!,
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildTotalPayable(double totalPayable) {
+  Widget _buildDetailRow(String label, String value, ThemeData theme) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: 4),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
+            color: theme.textTheme.bodyMedium?.color,
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+  Widget _buildTotalPayable(double totalPayable, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.all(10),
       child: Card(

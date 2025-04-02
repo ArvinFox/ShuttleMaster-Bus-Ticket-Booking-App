@@ -61,21 +61,8 @@ class _HomeScreenState extends State<HomeScreen> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
-            "Stay Signed In?",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          content: Text(
-            "Would you like to stay signed in on this device for easier access next time?",
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black87,
-            ),
-          ),
+          title: Text("Stay Signed In?"),
+          content: Text("Would you like to stay signed in on this device for easier access next time?"),
           actions: [
             TextButton(
               onPressed: () async {
@@ -85,12 +72,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 prefs.remove(AppConfig.userRoleKey);
                 Navigator.of(context).pop();
               },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.blueAccent,
-                backgroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
               child: Text("No", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
             ),
             TextButton(
@@ -106,20 +87,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 Navigator.of(context).pop();
               },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.blueAccent,
-                backgroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
               child: Text("Yes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
             ),
           ],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-          backgroundColor: Colors.white,
         );
       }
     );
@@ -127,9 +97,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(toolbarHeight: -24),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(toolbarHeight: -24, backgroundColor: theme.colorScheme.primary,),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
@@ -153,8 +125,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 },
               ),
-              _buildMyRides(),
-              _buildQuickAccessGrid(context),
+              _buildMyRides(theme),
+              _buildQuickAccessGrid(context, theme),
             ],
           ),
         ),
@@ -162,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMyRides() {
+  Widget _buildMyRides(ThemeData theme) {
     return Padding(
       padding: EdgeInsets.all(20),
       child: Column(
@@ -170,15 +142,13 @@ class _HomeScreenState extends State<HomeScreen> {
         children: [
           Text(
             "My Rides",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+            style: theme.textTheme.bodyLarge?.copyWith(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           SizedBox(height: 10),
           Container(
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey),
+              color: theme.colorScheme.surface,
+              border: Border.all(color: theme.colorScheme.onSurface.withOpacity(0.2)),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Padding(
@@ -192,21 +162,18 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       Text(
                         "NA 1090",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 4),
                       Row(
                         children: [
-                          Icon(Icons.location_on, size: 16, color: Colors.grey),
+                          Icon(Icons.location_on, size: 16, color: theme.colorScheme.primary),
                           Text("Kadawatha"),
                         ],
                       ),
                       Row(
                         children: [
-                          Icon(Icons.location_on, size: 16, color: Colors.grey),
+                          Icon(Icons.location_on, size: 16, color: theme.colorScheme.primary),
                           Text("NSBM"),
                         ],
                       ),
@@ -221,16 +188,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickAccessGrid(BuildContext context) {
+  Widget _buildQuickAccessGrid(BuildContext context, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "Quick Access",
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
+          style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         SizedBox(height: 15),
         GridView.count(
@@ -240,21 +204,21 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisSpacing: 8,
           mainAxisSpacing: 8,
           children: [
-            _buildQuickAccessButton(context, "View History", Icons.history, "/view-traveling-history"),
-            _buildQuickAccessButton(context, "Book Now", Icons.book_online, "/privateBusScreen"),
-            _buildQuickAccessButton(context, "Pay Later", Icons.payment, "/pay-later"),
-            _buildQuickAccessButton(context, "Cancel a Booking", Icons.cancel, "/traveling-history"),
-            _buildQuickAccessButton(context, "Top up Account", Icons.account_balance_wallet, "/top-up-account"),
-            _buildQuickAccessButton(context, "Customer Support", Icons.support_agent, ""),
+            _buildQuickAccessButton(context, theme, "View History", Icons.history, "/view-traveling-history"),
+            _buildQuickAccessButton(context, theme, "Book Now", Icons.book_online, "/privateBusScreen"),
+            _buildQuickAccessButton(context, theme, "Pay Later", Icons.payment, "/pay-later"),
+            _buildQuickAccessButton(context, theme, "Cancel a Booking", Icons.cancel, "/traveling-history"),
+            _buildQuickAccessButton(context, theme, "Top up Account", Icons.account_balance_wallet, "/top-up-account"),
+            _buildQuickAccessButton(context, theme, "Customer Support", Icons.support_agent, ""),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildQuickAccessButton(BuildContext context, String label, IconData icon, String route) {
+  Widget _buildQuickAccessButton(BuildContext context, ThemeData theme, String label, IconData icon, String route) {
     return Card(
-      color: Colors.grey[100],
+      color: theme.colorScheme.surface,
       child: InkWell(
         onTap: () => Navigator.pushNamed(context, route),
         child: Center(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shuttlemaster/providers/theme_provider.dart';
 import 'package:shuttlemaster/providers/user_provider.dart';
 
 class ProfileScreenDriver extends StatefulWidget {
@@ -10,12 +11,13 @@ class ProfileScreenDriver extends StatefulWidget {
 }
 
 class ProfileScreenState extends State<ProfileScreenDriver> {
-  bool _darkMode = false;
-
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -27,8 +29,8 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
               children: [
                 Container(
                   height: 180, // Height of the blue banner
-                  decoration: const BoxDecoration(
-                    color: Colors.blueAccent,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
                     borderRadius: BorderRadius.only(
                       bottomLeft: Radius.circular(20),
                       bottomRight: Radius.circular(20),
@@ -41,11 +43,11 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                          color: Colors.white, width: 4), // White border
+                          color: theme.colorScheme.background, width: 4), // White border
                     ),
-                    child: const CircleAvatar(
+                    child: CircleAvatar(
                       radius: 50,
-                      backgroundColor: Colors.white,
+                      backgroundColor: theme.colorScheme.background,
                       child: Icon(Icons.person_outline,
                           size: 60, color: Colors.grey),
                     ),
@@ -68,11 +70,10 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
                         height: 50), // Space to push content down after avatar
                     Center(
                         child:
-                            Text(user!.name, style: TextStyle(fontSize: 20))),
+                            Text(user!.name, style: theme.textTheme.bodyLarge)),
                     Center(
                         child: Text(user.phone,
-                            style:
-                                TextStyle(fontSize: 16, color: Colors.grey))),
+                            style: theme.textTheme.bodyMedium?.copyWith(color: Colors.grey))),
                     const SizedBox(height: 20),
                   ],
                 );
@@ -85,14 +86,10 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Dark Mode'),
+                  Text('Dark Mode', style: theme.textTheme.bodyMedium,),
                   Switch(
-                    value: _darkMode,
-                    onChanged: (bool value) {
-                      setState(() {
-                        _darkMode = value;
-                      });
-                    },
+                    value: themeProvider.isDarkMode,
+                    onChanged: (value) => themeProvider.toggleTheme(),
                   ),
                 ],
               ),
@@ -102,21 +99,21 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
 
             // List Items
             _buildListItem(
-                Icons.person, 'View Profile', "/driver/view-profile"),
-            _buildListItem(Icons.history, 'Trip History', "/trip-history"),
-            _buildListItem(Icons.support_agent, 'Help & Support', ""),
-            _buildListItem(Icons.info_outline, 'About Us', "/about-us"),
+                Icons.person, 'View Profile', "/driver/view-profile", theme),
+            _buildListItem(Icons.history, 'Trip History', "/trip-history", theme),
+            _buildListItem(Icons.support_agent, 'Help & Support', "", theme),
+            _buildListItem(Icons.info_outline, 'About Us', "/about-us", theme),
 
             // Footer
             const SizedBox(height: 20),
-            const Padding(
+            Padding(
               padding: EdgeInsets.only(bottom: 10),
               child: Center(
                 child: Column(
                   children: [
-                    Text('All rights reserved. Developed by Group 10'),
-                    Text('(Batch 12 UOP - NSBM)'),
-                    Text('App version - 1.0.0'),
+                    Text('All rights reserved. Developed by Group 10', style: theme.textTheme.bodySmall),
+                    Text('(Batch 12 UOP - NSBM)', style: theme.textTheme.bodySmall),
+                    Text('App version - 1.0.0', style: theme.textTheme.bodySmall),
                   ],
                 ),
               ),
@@ -127,7 +124,7 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
     );
   }
 
-  Widget _buildListItem(IconData icon, String title, String route) {
+  Widget _buildListItem(IconData icon, String title, String route, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
       child: InkWell(
@@ -137,14 +134,14 @@ class ProfileScreenState extends State<ProfileScreenDriver> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: theme.colorScheme.surface,
             borderRadius: BorderRadius.circular(10),
           ),
           child: Row(
             children: [
-              Icon(icon, color: Colors.blue),
+              Icon(icon, color: theme.colorScheme.primary),
               const SizedBox(width: 16),
-              Text(title),
+              Text(title, style: theme.textTheme.bodyMedium),
             ],
           ),
         ),

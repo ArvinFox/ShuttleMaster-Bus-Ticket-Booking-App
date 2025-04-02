@@ -69,21 +69,8 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text(
-            "Stay Signed In?",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          content: Text(
-            "Would you like to stay signed in on this device for easier access next time?",
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.black87,
-            ),
-          ),
+          title: Text("Stay Signed In?"),
+          content: Text("Would you like to stay signed in on this device for easier access next time?"),
           actions: [
             TextButton(
               onPressed: () async {
@@ -93,12 +80,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 prefs.remove(AppConfig.userRoleKey);
                 Navigator.of(context).pop();
               },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.blueAccent,
-                backgroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
               child: Text("No", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
             ),
             TextButton(
@@ -114,20 +95,9 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
                 Navigator.of(context).pop();
               },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.blueAccent,
-                backgroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
               child: Text("Yes", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
             ),
           ],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          contentPadding: EdgeInsets.symmetric(vertical: 20, horizontal: 24),
-          backgroundColor: Colors.white,
         );
       }
     );
@@ -194,9 +164,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(toolbarHeight: -24),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(toolbarHeight: -24, backgroundColor: theme.colorScheme.primary),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: EdgeInsets.only(
@@ -223,14 +195,14 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
               ),
               SizedBox(height: 15),
         
-              Text('Send Alerts', style: TextStyle(fontSize: 20)),
-              Divider(thickness: 2),
+              Text('Send Alerts', style: theme.textTheme.bodyLarge),
+              Divider(thickness: 2, color: theme.dividerColor),
               SizedBox(height: 5),
         
-              _buildAlertItem("The bus will be leaving soon..."),
-              _buildAlertItem("The bus has arrived at your destination!"),
-              _buildAlertItem("This is an alert!"),
-              _buildAlertItem("Are you coming today?"),           
+              _buildAlertItem("The bus will be leaving soon...", theme),
+              _buildAlertItem("The bus has arrived at your destination!", theme),
+              _buildAlertItem("This is an alert!", theme),
+              _buildAlertItem("Are you coming today?", theme),           
             ],
           )
         ),
@@ -238,14 +210,14 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
     );
   }
 
-  Container _buildAlertItem(String alert) {
+  Container _buildAlertItem(String alert, ThemeData theme) {
     return Container(
       // padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
       margin:EdgeInsets.only(top: 10),
       padding: EdgeInsets.only(left: 25),
       decoration: BoxDecoration(
-        color: Colors.grey[200],
-        border: Border.all(color: Colors.black, width: 1.5),
+        color: theme.colorScheme.surface,
+        border: Border.all(color: theme.colorScheme.onSurface, width: 1.5),
         borderRadius: BorderRadius.circular(50),
       ),
       child: Row(
@@ -254,7 +226,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             child: Text(
               // 'The bus should be driven rn...',
               alert, 
-              style: TextStyle(fontSize: 20)
+              style: theme.textTheme.bodyLarge
             ),
           ),
           // SizedBox(width: 10,)

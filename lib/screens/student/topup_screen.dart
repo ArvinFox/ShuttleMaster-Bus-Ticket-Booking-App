@@ -78,9 +78,10 @@ class _TopUpScreenState extends State<TopUpScreen> {
   @override
   Widget build(BuildContext context) {
     final balanceProvider = Provider.of<BalanceProvider>(context);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomMainAppbar(
         title: 'Top-up Account',
         showLeading: true,
@@ -96,7 +97,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
                 padding: EdgeInsets.all(12),
                 height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.grey[300],
+                  color: theme.colorScheme.surface,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
@@ -126,7 +127,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
                     Text(
                       'Rs. ${balanceProvider.balance.toStringAsFixed(2)}',
                       style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: theme.textTheme.bodyLarge?.color),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -135,7 +136,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
               SizedBox(height: 30),
               Text(
                 'Enter Amount to Top-up',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: theme.textTheme.bodyLarge?.color),
               ),
               SizedBox(height: 10),
               TextFormField(
@@ -168,14 +169,14 @@ class _TopUpScreenState extends State<TopUpScreen> {
               SizedBox(height: 30),
               Text(
                 'Credit/ Debit Card details',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: theme.textTheme.bodyLarge?.color),
               ),
               SizedBox(height: 10),
               Center(
                 child: Container(
                   width: 420,
                   height: 1.5,
-                  color: Colors.black54,
+                  color: theme.dividerColor,
                 ),
               ),
               SizedBox(height: 15),
@@ -198,7 +199,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Card Number',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: TextStyle(fontWeight: FontWeight.bold, color: theme.textTheme.bodyLarge?.color)),
                       SizedBox(height: 5),
                       TextFormField(
                         controller: cardNumberController,
@@ -214,7 +215,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
                       ),
                       SizedBox(height: 15),
                       Text('Expiry Date',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: TextStyle(fontWeight: FontWeight.bold, color: theme.textTheme.bodyLarge?.color)),
                       SizedBox(height: 5),
                       TextFormField(
                         controller: expiryDateController,
@@ -232,7 +233,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
                       ),
                       SizedBox(height: 15),
                       Text('Cardholder Name',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: TextStyle(fontWeight: FontWeight.bold, color: theme.textTheme.bodyLarge?.color)),
                       SizedBox(height: 5),
                       TextFormField(
                         controller: cardHolderController,
@@ -248,7 +249,7 @@ class _TopUpScreenState extends State<TopUpScreen> {
                       ),
                       SizedBox(height: 15),
                       Text('CVV (PIN)',
-                          style: TextStyle(fontWeight: FontWeight.bold)),
+                          style: TextStyle(fontWeight: FontWeight.bold, color: theme.textTheme.bodyLarge?.color)),
                       SizedBox(height: 5),
                       TextFormField(
                         controller: cvvController,

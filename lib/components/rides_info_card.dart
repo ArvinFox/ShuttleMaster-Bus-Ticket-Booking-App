@@ -1,16 +1,19 @@
 import 'package:flutter/material.dart';
 
 class RideInfoCard extends StatelessWidget {
+  final String rideId;
   final String busNo;
   final String startPoint;
   final String endPoint;
   final String time;
   final String price;
+  final bool showPrice;
   final String seatAvailability;
   final bool btnShown;
 
   const RideInfoCard({
     super.key,
+    required this.rideId,
     required this.busNo,
     required this.startPoint,
     required this.endPoint,
@@ -18,12 +21,15 @@ class RideInfoCard extends StatelessWidget {
     required this.price,
     required this.seatAvailability,
     this.btnShown = false,
+    this.showPrice = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Card(
-      color: Colors.grey[200],
+      color: theme.colorScheme.surface,
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
@@ -57,21 +63,30 @@ class RideInfoCard extends StatelessWidget {
               ],
             ),
             Divider(),
-            _infoRow("Start Point", startPoint),
-            _infoRow("End Point", endPoint),
-            _infoRow("Time", time),
-            _infoRow("Price", price),
-            _infoRow("Seat Availability", seatAvailability),
+            _infoRow("Start Point", startPoint, theme),
+            _infoRow("End Point", endPoint, theme),
+            _infoRow("Time", time, theme),
+            if (showPrice)
+              _infoRow("Price", price, theme),
+            _infoRow("Seat Availability", seatAvailability, theme),
             if (btnShown) ...[
               SizedBox(height: 10),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   _actionButton("Book Now", Colors.blue, () {
-                    Navigator.pushNamed(context, '/book-now');
+                    Navigator.pushNamed(
+                      context, 
+                      '/book-now',
+                      arguments: {'rideId': rideId},
+                    );
                   }),
                   _actionButton("Join", Colors.green, () {
-                    Navigator.pushNamed(context, '/monthly-book');
+                    Navigator.pushNamed(
+                      context, 
+                      '/monthly-book',
+                      arguments: {'rideId': rideId},
+                    );
                   }),
                 ],
               ),
@@ -82,16 +97,18 @@ class RideInfoCard extends StatelessWidget {
     );
   }
 
-  Widget _infoRow(String title, String value) {
+  Widget _infoRow(String title, String value, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         children: [
           Text(
             "$title - ",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          Text(value, style: TextStyle(fontSize: 16)),
+          Text(value, style: theme.textTheme.bodyMedium),
         ],
       ),
     );

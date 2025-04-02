@@ -33,8 +33,10 @@ class _StudentNotificationScreenState extends State<StudentNotificationScreen> {
   
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomMainAppbar(title: "Notifications", showLeading: false),
       body: SingleChildScrollView(
         child: Consumer<NotificationProvider>(
@@ -49,19 +51,21 @@ class _StudentNotificationScreenState extends State<StudentNotificationScreen> {
               itemCount: notificationProvider.notifications.length,
               itemBuilder: (context, index) {
                 final notification = notificationProvider.notifications[index];
+                final notificationType = NotificationStyles.getNotificationType(notification.type);
+                final iconColor = NotificationStyles.getNotificationItemColor(context, notificationType);
 
                 return Column(
                   children: [
                     SizedBox(height: 8),
                     Container(
                       padding: EdgeInsets.fromLTRB(8, 12, 8, 10),
-                      color: const Color.fromARGB(210, 66, 66, 66),
+                      color: theme.colorScheme.onSurface.withOpacity(0.6),
                       child: Column(
                         children: [
                           Container(
                             padding: EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.grey[200],
+                              color: theme.colorScheme.surface,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Column(
@@ -71,7 +75,7 @@ class _StudentNotificationScreenState extends State<StudentNotificationScreen> {
                                   children: [
                                     Icon(Icons.alarm, size: 12,),
                                     SizedBox(width: 2),
-                                    Text(DateFormat('hh:mm a').format(notification.date), style: TextStyle(fontSize: 12)),
+                                    Text(DateFormat('hh:mm a').format(notification.date), style: TextStyle(fontSize: 12, color: theme.textTheme.bodyLarge?.color)),
                                   ],
                                 ),
                                 Row(
@@ -79,7 +83,7 @@ class _StudentNotificationScreenState extends State<StudentNotificationScreen> {
                                     Icon(
                                       NotificationStyles.getNotificationIcon(NotificationStyles.getNotificationType(notification.type)), 
                                       size: 20, 
-                                      color: NotificationStyles.getNotificationItemColor(NotificationStyles.getNotificationType(notification.type)),
+                                      color: iconColor,
                                     ),
                                     SizedBox(width: 2),
                                     Text(
@@ -87,7 +91,7 @@ class _StudentNotificationScreenState extends State<StudentNotificationScreen> {
                                       style: TextStyle(
                                         fontSize: 18, 
                                         fontWeight: FontWeight.bold, 
-                                        color: NotificationStyles.getNotificationItemColor(NotificationStyles.getNotificationType(notification.type)),
+                                        color: iconColor,
                                       ),
                                     ),
                                   ],
@@ -95,7 +99,7 @@ class _StudentNotificationScreenState extends State<StudentNotificationScreen> {
                                 SizedBox(height: 5,),
                                 Padding(
                                   padding: const EdgeInsets.fromLTRB(18, 3, 8, 8),
-                                  child: Text(notification.message),
+                                  child: Text(notification.message, style: TextStyle(color: theme.textTheme.bodyLarge?.color)),
                                 )
                               ],
                             ),

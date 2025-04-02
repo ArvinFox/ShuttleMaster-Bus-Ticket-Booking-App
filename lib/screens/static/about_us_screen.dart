@@ -7,8 +7,10 @@ class AboutUsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomMainAppbar(title: "About Us", showLeading: true,),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -27,7 +29,7 @@ class AboutUsScreen extends StatelessWidget {
                 "With ShuttleMaster, effortlessly track bus timings, receive timely notifications, and make secure payments with just a few taps. Our app is designed to ensure a smooth and reliable transit experience, helping you navigate the campus with ease and confidence.\n\n"
 
                 "Join us in revolutionizing campus travel, making it more accessible, efficient, and enjoyable. Let\'s make your daily commute a breeze, allowing you to focus on what truly matters-your academic journey and campus life.",
-                style: TextStyle(fontSize: 16),
+                style: theme.textTheme.bodyMedium,
               ),
 
               SizedBox(height: 20),
@@ -45,10 +47,7 @@ class AboutUsScreen extends StatelessWidget {
 
               Text(
                 "For More Information",
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 16),
 
