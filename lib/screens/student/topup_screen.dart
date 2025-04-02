@@ -17,17 +17,16 @@ class TopUpScreen extends StatefulWidget {
 
 class _TopUpScreenState extends State<TopUpScreen> {
   final _formKey = GlobalKey<FormState>();
+  TextEditingController amountController = TextEditingController();
+  TextEditingController cardNumberController = TextEditingController();
+  TextEditingController expiryDateController = TextEditingController();
+  TextEditingController cardHolderController = TextEditingController();
+  TextEditingController cvvController = TextEditingController();
+
   double enteredAmount = 0.00; // Amount entered by the user
 
-  final TextEditingController _amountController = TextEditingController();
-  final TextEditingController _cardNumberController = TextEditingController();
-  final TextEditingController _expiryDateController = TextEditingController();
-  final TextEditingController _cardHolderController = TextEditingController();
-  final TextEditingController _cvvController = TextEditingController();
-
   // Method to call the backend and get the client secret
-  Future<void> topUpAccount(
-      double amount, BalanceProvider balanceProvider) async {
+  Future<void> topUpAccount(BuildContext context, double amount) async {
     try {
       final response = await http.post(
         Uri.parse('http://10.0.2.2:3000/create-payment-intent'),
@@ -40,8 +39,10 @@ class _TopUpScreenState extends State<TopUpScreen> {
         final data = json.decode(response.body);
         String clientSecret = data['clientSecret'];
 
-        // Update the balance after top-up
-        await balanceProvider.addBalance(amount);
+        // Update the balance using Provider
+        final balanceProvider =
+            Provider.of<BalanceProvider>(context, listen: false);
+        balanceProvider.updateBalance(balanceProvider.balance + amount);
 
         // Show success message
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -49,15 +50,10 @@ class _TopUpScreenState extends State<TopUpScreen> {
               'Top-up successful! New balance: Rs. ${balanceProvider.balance.toStringAsFixed(2)}'),
         ));
 
-        // Clear the text fields after top-up
-        setState(() {
-          enteredAmount = 0.00;
-          _amountController.clear();
-          _cardNumberController.clear();
-          _expiryDateController.clear();
-          _cardHolderController.clear();
-          _cvvController.clear();
-        });
+        // Clear fields after successful top-up
+        clearFields();
+      } else {
+        throw Exception('Failed to create payment intent');
       }
     } catch (e) {
       print('Error: $e');
@@ -67,217 +63,244 @@ class _TopUpScreenState extends State<TopUpScreen> {
     }
   }
 
+  // Method to clear the fields
+  void clearFields() {
+    amountController.clear();
+    cardNumberController.clear();
+    expiryDateController.clear();
+    cardHolderController.clear();
+    cvvController.clear();
+    setState(() {
+      enteredAmount = 0.00;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Consumer<BalanceProvider>(
-      builder: (context, balanceProvider, child) {
-        return Scaffold(
-          backgroundColor: Colors.white,
-          appBar: CustomMainAppbar(title: 'Top-up Account', showLeading: true),
-          body: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 10),
-                  Container(
-                    padding: EdgeInsets.all(12),
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black26,
-                          blurRadius: 5,
-                          offset: Offset(0, 3),
-                        ),
-                      ],
+    final balanceProvider = Provider.of<BalanceProvider>(context);
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: CustomMainAppbar(
+        title: 'Top-up Account',
+        showLeading: true,
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(height: 10),
+              Container(
+                padding: EdgeInsets.all(12),
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black26,
+                      blurRadius: 5,
+                      offset: Offset(0, 3),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
                       children: [
-                        Row(
-                          children: [
-                            Icon(Icons.payment, color: Colors.red, size: 24),
-                            SizedBox(width: 8),
-                            Text(
-                              'Current Amount',
-                              style: TextStyle(
-                                  color: Colors.red,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 10),
+                        Icon(Icons.payment, color: Colors.red, size: 24),
+                        SizedBox(width: 8),
                         Text(
-                          'Rs. ${balanceProvider.balance.toStringAsFixed(2)}',
+                          'Current Amount',
                           style: TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
+                              color: Colors.red,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16),
                         ),
                       ],
                     ),
-                  ),
-                  SizedBox(height: 30),
-                  Text(
-                    'Enter Amount to Top-up',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                  SizedBox(height: 10),
-                  TextFormField(
-                    controller: _amountController,
-                    keyboardType:
-                        TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Enter Amount',
+                    SizedBox(height: 10),
+                    Text(
+                      'Rs. ${balanceProvider.balance.toStringAsFixed(2)}',
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
                     ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d+(\.\d{0,2})?')),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        enteredAmount = double.tryParse(value) ?? 0.00;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter a valid amount';
-                      }
-                      if (double.tryParse(value) == null ||
-                          double.parse(value) <= 0) {
-                        return 'Please enter a valid positive amount';
-                      }
-                      return null;
-                    },
-                  ),
-                  SizedBox(height: 30),
-                  Text(
-                    'Credit/ Debit Card details',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                  ),
-                  SizedBox(height: 10),
-                  Center(
-                    child: Container(
-                      width: 420,
-                      height: 1.5,
-                      color: Colors.black54,
-                    ),
-                  ),
-                  SizedBox(height: 15),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Card Number',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          SizedBox(height: 5),
-                          TextFormField(
-                            controller: _cardNumberController,
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'Card Number',
-                            ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              CardNumberFormatter()
-                            ],
-                            validator: Validators.validateCardNumber,
-                          ),
-                          SizedBox(height: 15),
-                          Text('Expiry Date',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          SizedBox(height: 5),
-                          TextFormField(
-                            controller: _expiryDateController,
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'MM/YY',
-                            ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              ExpiryDateFormatter()
-                            ],
-                            validator: Validators.validateExpiryDate,
-                          ),
-                          SizedBox(height: 15),
-                          Text('Cardholder Name',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          SizedBox(height: 5),
-                          TextFormField(
-                            controller: _cardHolderController,
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: 'Perera A',
-                            ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.allow(
-                                  RegExp(r'[a-zA-Z ]'))
-                            ],
-                            validator: Validators.validateCardHolderName,
-                          ),
-                          SizedBox(height: 15),
-                          Text('CVV (PIN)',
-                              style: TextStyle(fontWeight: FontWeight.bold)),
-                          SizedBox(height: 5),
-                          TextFormField(
-                            controller: _cvvController,
-                            decoration: InputDecoration(
-                              border: OutlineInputBorder(),
-                              hintText: '123',
-                            ),
-                            inputFormatters: [
-                              FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(3)
-                            ],
-                            validator: Validators.validateCVV,
-                          ),
-                          SizedBox(height: 25),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Center(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState?.validate() ?? false) {
-                          if (enteredAmount > 0) {
-                            topUpAccount(enteredAmount, balanceProvider);
-                          } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                  content: Text('Please enter a valid amount')),
-                            );
-                          }
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent,
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 55, vertical: 13),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      child: Text(
-                        'Top-up',
-                        style: TextStyle(color: Colors.white, fontSize: 16),
-                      ),
-                    ),
-                  ),
+                  ],
+                ),
+              ),
+              SizedBox(height: 30),
+              Text(
+                'Enter Amount to Top-up',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              SizedBox(height: 10),
+              TextFormField(
+                controller: amountController,
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'Enter Amount (Min: Rs.20)',
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    enteredAmount = double.tryParse(value) ?? 0.00;
+                  });
+                },
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(
+                      RegExp(r'^\d+(\.\d{0,2})?$')),
+                ],
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return null;
+                  }
+                  if (double.tryParse(value) == null ||
+                      double.parse(value) < 20) {
+                    return null;
+                  }
+                  return null;
+                },
+              ),
+              SizedBox(height: 30),
+              Text(
+                'Credit/ Debit Card details',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+              ),
+              SizedBox(height: 10),
+              Center(
+                child: Container(
+                  width: 420,
+                  height: 1.5,
+                  color: Colors.black54,
+                ),
+              ),
+              SizedBox(height: 15),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset('assets/icons/visa.png', width: 50),
+                  SizedBox(width: 55),
+                  Image.asset('assets/icons/mastercard.png', width: 50),
+                  SizedBox(width: 55),
+                  Image.asset('assets/icons/paypal.png', width: 50),
                 ],
               ),
-            ),
+              SizedBox(height: 20),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Card Number',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 5),
+                      TextFormField(
+                        controller: cardNumberController,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'Card Number',
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          CardNumberFormatter()
+                        ],
+                        validator: Validators.validateCardNumber,
+                      ),
+                      SizedBox(height: 15),
+                      Text('Expiry Date',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 5),
+                      TextFormField(
+                        controller: expiryDateController,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'MM/YY',
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          ExpiryDateFormatter()
+                        ],
+                        validator: (value) {
+                          return Validators.validateExpiryDate(value);
+                        },
+                      ),
+                      SizedBox(height: 15),
+                      Text('Cardholder Name',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 5),
+                      TextFormField(
+                        controller: cardHolderController,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'Perera A',
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(
+                              RegExp(r'[a-zA-Z ]'))
+                        ],
+                        validator: Validators.validateCardHolderName,
+                      ),
+                      SizedBox(height: 15),
+                      Text('CVV (PIN)',
+                          style: TextStyle(fontWeight: FontWeight.bold)),
+                      SizedBox(height: 5),
+                      TextFormField(
+                        controller: cvvController,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: '123',
+                        ),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          LengthLimitingTextInputFormatter(3)
+                        ],
+                        validator: Validators.validateCVV,
+                      ),
+                      SizedBox(height: 25),
+                    ],
+                  ),
+                ),
+              ),
+              Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState?.validate() ?? false) {
+                      if (enteredAmount >= 20) {
+                        topUpAccount(context, enteredAmount);
+                      } else {
+                        // Show Snackbar if amount is less than 20
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                                'Please Enter a Valid Amount (Minimum: Rs. 20)'),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    padding: EdgeInsets.symmetric(horizontal: 55, vertical: 13),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: Text(
+                    'Top-up',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+              ),
+            ],
           ),
-        );
-      },
+        ),
+      ),
     );
   }
 }

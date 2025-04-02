@@ -38,17 +38,3 @@ class ExpiryDateFormatter extends TextInputFormatter {
     );
   }
 }
-
-class AmountFormatter extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-      TextEditingValue oldValue, TextEditingValue newValue) {
-    String newText =
-        newValue.text.replaceAll(RegExp(r'[^\d]'), ''); // Allow only digits
-
-    return TextEditingValue(
-      text: newText,
-      selection: TextSelection.collapsed(offset: newText.length),
-    );
-  }
-}

@@ -10,18 +10,16 @@ class BalanceProvider extends ChangeNotifier {
     _loadBalance();
   }
 
-  // Load balance from SharedPreferences
   Future<void> _loadBalance() async {
     final prefs = await SharedPreferences.getInstance();
-    _balance = prefs.getDouble('currentBalance') ?? 0.0;
+    _balance = prefs.getDouble('current_balance') ?? 0.0;
     notifyListeners();
   }
 
-  // Update balance and save to SharedPreferences
-  Future<void> addBalance(double amount) async {
-    _balance += amount;
+  Future<void> updateBalance(double amount) async {
+    _balance = amount;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setDouble('currentBalance', _balance);
+    await prefs.setDouble('current_balance', _balance);
     notifyListeners();
   }
 }
