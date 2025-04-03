@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shuttlemaster/components/custom_main_appbar.dart';
+import 'package:shuttlemaster/models/notification_model.dart';
 import 'package:shuttlemaster/providers/notification_provider.dart';
 import 'package:shuttlemaster/providers/user_provider.dart';
 import 'package:shuttlemaster/services/ride_service.dart';
@@ -15,6 +16,7 @@ class StudentNotificationScreen extends StatefulWidget {
 }
 
 class _StudentNotificationScreenState extends State<StudentNotificationScreen> {
+  bool _attendanceConfirmed = false;
   final RideService _rideService = RideService();
 
   @override
@@ -106,44 +108,7 @@ class _StudentNotificationScreenState extends State<StudentNotificationScreen> {
                           ),
                           SizedBox(height: 8),
 
-                          if (notification.type == "confirm_attendance")
-                            Row(
-                              children: [
-                                Expanded(
-                                  flex: 1,
-                                  child: SizedBox(
-                                    height: 45,
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        _rideService.updateAttendanceStatus(notification.rideId!, notification.userId, "Coming");
-                                      }, 
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.green,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-                                      ),
-                                      child: Text("Coming", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),)
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(width: 8,),
-                                Expanded(
-                                  flex: 1,
-                                  child: SizedBox(
-                                    height: 45,
-                                    child: ElevatedButton(
-                                      onPressed: () {
-                                        _rideService.updateAttendanceStatus(notification.rideId!, notification.userId, "Not Coming");
-                                      }, 
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.red,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
-                                      ),
-                                      child: Text("Not Coming", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),)
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),                          
+                          _buildAttendaceConfirmationButtons(notification, theme),                     
                         ],
                       ),
                     ),
@@ -155,5 +120,57 @@ class _StudentNotificationScreenState extends State<StudentNotificationScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildAttendaceConfirmationButtons(NotificationModel notification, ThemeData theme) {
+    if (notification.type == "confirm_attendace") {
+      return _attendanceConfirmed
+        ? Text("Attendance Confirmed!", style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold))
+        : Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: SizedBox(
+                  height: 45,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _rideService.updateAttendanceStatus(notification.rideId!, notification.userId, "Coming");
+                      setState(() {
+                        _attendanceConfirmed = true;
+                      });
+                    }, 
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                    ),
+                    child: Text("Coming", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),)
+                  ),
+                ),
+              ),
+              SizedBox(width: 8,),
+              Expanded(
+                flex: 1,
+                child: SizedBox(
+                  height: 45,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      _rideService.updateAttendanceStatus(notification.rideId!, notification.userId, "Not Coming");
+                      setState(() {
+                        _attendanceConfirmed = true;
+                      });
+                    }, 
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))
+                    ),
+                    child: Text("Not Coming", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),)
+                  ),
+                ),
+              ),
+            ],
+          );
+    } else {
+      return SizedBox.shrink();
+    }
   }
 }

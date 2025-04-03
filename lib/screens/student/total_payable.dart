@@ -73,20 +73,27 @@ class _TotalPayableScreenState extends State<TotalPayableScreen> {
   }
 
   void _showPaymentConfirmation(BuildContext context, List<String> bookingId) {
+    final theme = Theme.of(context);
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Payment Confirmation"),
+          backgroundColor: theme.colorScheme.surface,
+          title: Text("Payment Confirmation", style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
           content: SizedBox(
             width: 300,
-            child: Text("Are you sure you want to confirm this payment ?")),
+            child: Text(
+              "Are you sure you want to confirm this payment?",
+              style: theme.textTheme.bodyMedium,
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: Text("No")),
+              child: Text("No", style: TextStyle(color: theme.colorScheme.primary))),
             TextButton(
               onPressed: () async {
                 try{
@@ -109,7 +116,7 @@ class _TotalPayableScreenState extends State<TotalPayableScreen> {
                   Helpers.debugPrintWithBorder('Error: $e');
                 }
               },
-              child: Text("Yes")
+              child: Text("Yes", style: TextStyle(color: theme.colorScheme.primary))
             ),
           ],
         );
@@ -119,8 +126,10 @@ class _TotalPayableScreenState extends State<TotalPayableScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: CustomMainAppbar(title: 'Total Payable', showLeading: true),
       body: Stack(
         children: [
@@ -134,10 +143,7 @@ class _TotalPayableScreenState extends State<TotalPayableScreen> {
                     children: [
                       Text(
                         "Select Payaments to be paid",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                       ),
                       SizedBox(height: 10),
 
@@ -193,7 +199,8 @@ class _TotalPayableScreenState extends State<TotalPayableScreen> {
                                     Formatters.formatDate(booking.bookingDate),
                                     booking.amount,
                                     ride.status,
-                                    booking.bookingId
+                                    booking.bookingId,
+                                    theme
                                   );
                                 }
                               );
@@ -211,14 +218,14 @@ class _TotalPayableScreenState extends State<TotalPayableScreen> {
             bottom: 0,
             left: 0,
             right: 0,
-            child: _buildAmountFooter(totalAmount, _selectedbookingIds),
+            child: _buildAmountFooter(totalAmount, _selectedbookingIds, theme),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSelectCard(int index,String pickup,String drop, String pickupTime, String dropTime, String date,double amount,String status,String bookingId) {
+  Widget _buildSelectCard(int index,String pickup,String drop, String pickupTime, String dropTime, String date,double amount,String status,String bookingId, ThemeData theme) {
     return Card(
       child: Container(
         width: double.infinity,
@@ -250,17 +257,11 @@ class _TotalPayableScreenState extends State<TotalPayableScreen> {
                 children: [
                   Text(
                     "${Formatters.formatRoute(10, pickup)} - \n${Formatters.formatRoute(10, drop)} ",
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700),
                   ),
                   Text(
                     status == 'Completed' ? "$pickupTime - $dropTime" : pickupTime,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.normal,
-                    ),
+                    style: theme.textTheme.bodyMedium,
                   ),
                 ],
               ),
@@ -271,26 +272,20 @@ class _TotalPayableScreenState extends State<TotalPayableScreen> {
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(100),
-                      color: Colors.grey.withOpacity(0.9),
+                      color: theme.colorScheme.surface,
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(8),
                       child: Text(
                         date,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: theme.textTheme.bodyMedium?.copyWith(fontSize: 15, fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
                   SizedBox(height: 10),
                   Text(
                     "Rs. ${amount.toStringAsFixed(2)}",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.normal,
-                    ),
+                    style: theme.textTheme.bodyMedium,
                   ),
                 ],
               ),
@@ -301,33 +296,27 @@ class _TotalPayableScreenState extends State<TotalPayableScreen> {
     );
   }
 
-  Widget _buildAmountFooter(double total, List<String> selectedbookingIds) {
+  Widget _buildAmountFooter(double total, List<String> selectedbookingIds, ThemeData theme) {
     return Container(
-      color: Colors.white,
+      color: theme.scaffoldBackgroundColor,
       child: Padding(
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
-            Divider(color: Colors.black),
+            Divider(color: theme.dividerColor),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 Text(
                   "Total : ",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 SizedBox(
                   width: 30,
                 ),
                 Text(
                   "Rs. ${total.toStringAsFixed(2)}",
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ],
             ),

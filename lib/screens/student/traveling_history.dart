@@ -249,8 +249,8 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                                     Formatters.formatDate(booking.bookingDate),
                                     Formatters.formatTime(ride!.departureTime),
                                     ride.busNo,
-                                    ride.route['pickup'] ?? 'N/A',
-                                    ride.route['drop'] ?? 'N/A',
+                                    booking.pickup ?? 'N/A',
+                                    booking.drop ?? 'N/A',
                                     booking.amount,
                                     booking.isPaid,
                                     booking.paymentMethod,
@@ -285,9 +285,9 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                               booking.amount,
                               booking.paymentMethod,
                               ride.busNo,
-                              ride.route['pickup'] ?? 'N/A',
+                              booking.pickup ?? 'N/A',
                               Formatters.formatTime(ride.departureTime),
-                              ride.route['drop'] ?? 'N/A',
+                              booking.drop ?? 'N/A',
                               booking.isPaid,
                               booking.bookingId,
                               theme,
@@ -297,8 +297,8 @@ class _TravelingHistoryState extends State<TravelingHistory> {
                               Formatters.formatDate(booking.bookingDate),
                               Formatters.formatTime(ride!.departureTime),
                               ride.busNo,
-                              ride.route['pickup'] ?? 'N/A',
-                              ride.route['drop'] ?? 'N/A',
+                              booking.pickup ?? 'N/A',
+                              booking.drop ?? 'N/A',
                               booking.amount,
                               booking.isPaid,
                               booking.paymentMethod,
@@ -368,7 +368,7 @@ class _TravelingHistoryState extends State<TravelingHistory> {
 
   Color cardColor = theme.colorScheme.surface;
   Color textColor = theme.textTheme.bodyMedium?.color ?? Colors.black;
-  Color paidColor = theme.colorScheme.onPrimary;
+  Color paidColor = theme.textTheme.bodyLarge?.color ?? Colors.black;
   Color unpaidColor = Colors.red;
 
     return Padding(

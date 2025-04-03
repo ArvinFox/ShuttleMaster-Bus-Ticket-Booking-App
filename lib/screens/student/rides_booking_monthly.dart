@@ -62,8 +62,16 @@ class RidesScreenState extends State<RidesScreenMonthly> {
   void updatePrice() {
     if (selectedStop != null) {
       final selectedStopData = stops.firstWhere((stop) => stop['stop'] == selectedStop);
+
+      double discountPercentage = 0.15; // 15% discount
+      
+      double oneWayPrice = selectedStopData['price'].toDouble();
+      double roundTripPrice = oneWayPrice * 2;
+      double fullMonthPrice = roundTripPrice * 30;
+      double discountedPrice = fullMonthPrice * (1 - discountPercentage);
+
       setState(() {
-        currentPrice = selectedStopData['price'].toDouble();
+        currentPrice = discountedPrice;
       });
     }
   }
@@ -196,12 +204,12 @@ class RidesScreenState extends State<RidesScreenMonthly> {
       Future.delayed(Duration(seconds: 1), () {
         Navigator.pushReplacementNamed(context, '/student/home');
       });
-      Helpers.showMessage(context, 'Membership successful');
+      Helpers.showMessage(context, 'You are now registered for the monthly bus service');
     } else {
       if (selectedPayment == 'Current Balance') {
         Helpers.showMessage(context, 'Insufficient funds');
       } else {
-        Helpers.showMessage(context, 'Membership process failed! Please try again');
+        Helpers.showMessage(context, 'Monthly bus subscription failed! Please try again');
       }
     }
   }

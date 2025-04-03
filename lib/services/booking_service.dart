@@ -14,7 +14,8 @@ class BookingService {
       String tripType,
       DateTime bookingDate,
       double amount,
-      String pickup) async {
+      String pickup,
+      String drop) async {
     try {
       bool isPaid = paymentMethod == "Card";
 
@@ -48,6 +49,7 @@ class BookingService {
         paymentMethod: paymentMethod,
         cancelledDate: null,
         pickup: pickup,
+        drop: drop,
       );
 
       await _db

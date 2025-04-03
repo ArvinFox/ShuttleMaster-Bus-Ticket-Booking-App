@@ -53,6 +53,7 @@ class BookingModel {
 class SingleRideBooking extends BookingModel {
   final String tripType;
   final DateTime bookingDate;
+  final String drop;
 
   SingleRideBooking({
     required super.bookingId,
@@ -67,6 +68,7 @@ class SingleRideBooking extends BookingModel {
     required super.paymentMethod,
     required super.cancelledDate,
     super.pickup,
+    required this.drop,
   });
 
   factory SingleRideBooking.fromFirestore(DocumentSnapshot doc) {
@@ -84,6 +86,7 @@ class SingleRideBooking extends BookingModel {
       bookingDate: (data['booking_date'] as Timestamp).toDate(),
       paymentMethod: data['payment_method'] ?? '',
       pickup: data['pickup'] ?? '',
+      drop: data['drop'] ?? '',
       cancelledDate: data['cancelled_date'] != null ? (data['cancelled_date'] as Timestamp).toDate() : null
     );
   }
@@ -91,7 +94,11 @@ class SingleRideBooking extends BookingModel {
   @override
   Map<String, dynamic> toFirestore() {
     return super.toFirestore()
-      ..addAll({'trip_type': tripType, 'booking_date': bookingDate});
+      ..addAll({
+        'trip_type': tripType, 
+        'booking_date': bookingDate, 
+        'drop': drop,
+      });
   }
 }
 

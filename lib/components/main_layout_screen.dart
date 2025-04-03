@@ -11,8 +11,9 @@ import 'package:shuttlemaster/screens/student/rides_screen.dart';
 
 class MainLayoutScreen extends StatefulWidget {
   final String userRole;
+  final String? driverId;
 
-  const MainLayoutScreen({super.key, required this.userRole});
+  const MainLayoutScreen({super.key, required this.userRole, this.driverId});
 
   @override
   State<MainLayoutScreen> createState() => _MainLayoutScreenState();
@@ -45,7 +46,7 @@ class _MainLayoutScreenState extends State<MainLayoutScreen> {
     } else if (widget.userRole == AppConfig.driverRole) {
       _screens = [
         DriverHomeScreen(),
-        TripInfoScreen(),
+        TripInfoScreen(driverId: widget.driverId!,),
         DriverNotificationScreen(),
         ProfileScreenDriver(),
       ];

@@ -77,10 +77,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
           }
         }
       }
-
+      
       Navigator.pushReplacementNamed(
         context, 
         route,
+        arguments: role == AppConfig.driverRole ? {"driver_id": userId} : null,
       );
     });
   }

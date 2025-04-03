@@ -129,7 +129,7 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
     });
   }
 
-  Future<void> _handleOtpVerification() async {
+  Future<void> _handleOtpVerification(String? driverId) async {
     setState(() => _isLoading = true);
     bool isCorrectOtp = await _verifyOtp(_otpController.text);
     setState(() => _isLoading = false);
@@ -140,15 +140,20 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
 
       Navigator.pushNamedAndRemoveUntil(
         context,
-        await getUserHomeRoute(role),
+        (await getUserHomeRoute(role, driverId))["route"] as String,
         (route) => false,
+        arguments: (await getUserHomeRoute(role, driverId))["arguments"],
       );
     }
   }
 
-  Future<String> getUserHomeRoute(String? role) async {
+  Future<Map<String, dynamic>> getUserHomeRoute(String? role, String? driverId) async {
     await Future.delayed(Duration(milliseconds: 250));
-    return (role == AppConfig.passengerRole) ? "/student/home" : "/driver/home";
+    if (role == AppConfig.passengerRole) {
+      return {"route": "/student/home", "arguments": null};
+    } else {
+      return {"route": "/driver/home", "arguments": {'driver_id': driverId}};
+    }
   }
 
   @override
@@ -204,7 +209,9 @@ class _EnterOtpScreenState extends State<EnterOtpScreen> {
 
                   CustomButton(
                     label: "Continue", 
-                    onPressed: _isLoading ? null : _handleOtpVerification,
+                    onPressed: _isLoading ? null : () async {
+                      await _handleOtpVerification(userProvider.user!.userId);
+                    },
                     isLoading: _isLoading,
                   ),
                 ],

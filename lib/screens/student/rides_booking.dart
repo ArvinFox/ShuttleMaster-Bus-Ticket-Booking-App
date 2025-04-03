@@ -26,6 +26,7 @@ class BookingScreenState extends State<BookingScreen> {
   final rideService = RideService();
   List<Map<String, dynamic>> stops = [];
   String? selectedStop;
+  bool isPickup = true;
   double currentPrice = 300.00;
   bool isLoading = true;
 
@@ -46,6 +47,8 @@ class BookingScreenState extends State<BookingScreen> {
 
   Future<void> fetchStops(RideModel? ride) async {
     try {
+      isPickup = ride?.route['drop'] == "NSBM Green University";
+
       if (ride != null && ride.stops.isNotEmpty) {
         stops = ride.stops;
         if (stops.isNotEmpty) {
@@ -66,6 +69,9 @@ class BookingScreenState extends State<BookingScreen> {
       final selectedStopData = stops.firstWhere((stop) => stop['stop'] == selectedStop);
       setState(() {
         currentPrice = selectedStopData['price'].toDouble();
+        if (tripType == "Round-trip") {
+          currentPrice = currentPrice * 2;
+        }
       });
     }
   }
@@ -106,7 +112,7 @@ class BookingScreenState extends State<BookingScreen> {
                   SizedBox(height: 25),
                   if (stops.isNotEmpty) ...[
                     Text(
-                      "Select Pickup Spot",
+                      "Select ${isPickup ? "Pickup" : "Drop"} Spot",
                       style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)
                     ),
                     DropdownButton<String>(
@@ -209,6 +215,7 @@ class BookingScreenState extends State<BookingScreen> {
           onChanged: (value) {
             setState(() {
               tripType = value.toString();
+              updatePrice();
             });
           },
         ),
@@ -270,8 +277,11 @@ class BookingScreenState extends State<BookingScreen> {
     String name = userProvider.user!.name;
     double amount = currentPrice;
 
+    String pickup = isPickup ? selectedStop! : "NSBM Green University";
+    String drop = isPickup ? "NSBM Green University" : selectedStop!;
+
     bool isSuccess = await bookingService.createSingleBooking(
-        rideId!, userId, name, paymentMethod!, tripType!, selectedDate, amount, selectedStop!);
+        rideId!, userId, name, paymentMethod!, tripType!, selectedDate, amount, pickup, drop);
 
     if (isSuccess) {
       Future.delayed(Duration(seconds: 1), () {

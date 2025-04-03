@@ -106,4 +106,17 @@ class RideService{
       throw Exception("Failed to update ride: $e");
     }
   }
+
+  // Fetch driver rides
+  Future<List<RideModel>> getDriverRides(String driverId) async {
+    try {
+      QuerySnapshot snapshot = await _db.collection(AppConfig.ridesCollection).where('driver_id', isEqualTo: driverId).get();
+
+      List<RideModel> rides = snapshot.docs.map((doc) => RideModel.fromFirestore(doc)).toList();
+      return rides;
+      
+    } catch (e) {
+      throw Exception("Failed to fetch driver rides: $e");
+    }
+  }
 }

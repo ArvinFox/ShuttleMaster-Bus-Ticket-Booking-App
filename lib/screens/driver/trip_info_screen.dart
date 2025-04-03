@@ -8,7 +8,14 @@ import 'package:shuttlemaster/services/ride_service.dart';
 import 'package:shuttlemaster/utils/helpers.dart';
 
 class TripInfoScreen extends StatefulWidget {
-  const TripInfoScreen({super.key});
+  final String driverId;
+  final String? rideId;
+
+  const TripInfoScreen({
+    super.key,
+    required this.driverId,
+    this.rideId,
+  });
 
   @override
   State<TripInfoScreen> createState() => _TripInfoScreenState();
@@ -46,7 +53,18 @@ class _TripInfoScreenState extends State<TripInfoScreen> {
     });
 
     try {
-      ride = await _rideService.getRideById("5"); // For testing purposes
+      if (widget.rideId != null && widget.rideId!.isNotEmpty) {
+        ride = await _rideService.getRideById(widget.rideId!);
+      } else {
+        final now = DateTime.now();
+        List<RideModel> driverRides = await _rideService.getDriverRides(widget.driverId);
+        driverRides.sort((a, b) => a.departureTime.compareTo(b.departureTime));
+
+        ride = driverRides.firstWhere(
+          (r) => r.departureTime.isAfter(now),
+          orElse: () => driverRides.first
+        );
+      }
 
       if (ride != null) {
         routeName = "${ride?.route['pickup']} - ${ride?.route['drop']}";

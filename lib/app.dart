@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+// import 'package:shuttlemaster/components/main_layout_screen.dart';
 import 'package:shuttlemaster/providers/booking_provider.dart';
 import 'package:shuttlemaster/providers/notification_provider.dart';
 import 'package:shuttlemaster/providers/rides_provider.dart';
@@ -30,6 +31,7 @@ class ShuttleMaster extends StatelessWidget {
             title: "ShuttleMaster",
             debugShowCheckedModeBanner: false,
             theme: themeProvider.themeData,
+            // home: MainLayoutScreen(userRole: "passenger"),
             initialRoute: "/intro",
             routes: AppRoutes.routes,
           );
